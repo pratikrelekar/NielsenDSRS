@@ -1,4 +1,4 @@
-# NielsenDSRS
+# Nielsen Retail Reader
 <p>
     </a>
     <a href="https://github.com/pratikrelekar/NielsenDSRS/blob/main/LICENSE">
