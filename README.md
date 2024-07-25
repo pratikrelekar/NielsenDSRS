@@ -5,8 +5,6 @@
 | --- | --- |
 | License | [![License](https://img.shields.io/badge/LICENSE-blue)](https://github.com/pratikrelekar/NielsenDSRS/blob/main/LICENSE) |
 | Dependencies | [![Dask Latest Release](https://img.shields.io/badge/Dask-orange)](https://www.dask.org) |
-| Meta | [![Powered by NumFOCUS](https://img.shields.io/badge/powered%20by-NumFOCUS-orange.svg?style=flat&colorA=E1523D&colorB=007D8A)](https://numfocus.org) |
-
 
 
 ## Overview:
