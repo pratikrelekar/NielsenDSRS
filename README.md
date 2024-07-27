@@ -17,7 +17,7 @@
 
 ### Access to Nielsen Retail Data:
 
-Please note that Nielsen retail data is proprietary and access is restricted to individuals whose institutions have an existing subscription or agreement with Nielsen. If you intend to use this library for accessing and analyzing Nielsen data, you must first ensure that you are authorized to do so by your institution. Check with your institution's administration or research office to confirm that you have the necessary permissions to access Nielsen datasets. Unauthorized access or use of this data may violate terms of use and could have legal implications. Nielsen dataset should strictly follow standard naming convention as per laid out by Nielsen and Kilts Center of Marketing and under no circumstances the naming convention should be changed.
+Please note that Nielsen retail data is proprietary and access is restricted to individuals whose institutions have an existing subscription or agreement with Nielsen. If you intend to use this library for accessing and analyzing Nielsen data, you must first ensure that you are authorized to do so by your institution. Unauthorized access or use of this data may violate terms of use and could have legal implications. Nielsen dataset should strictly follow standard naming convention as per laid out by Nielsen and Kilts Center of Marketing and under no circumstances the naming convention should be changed.
 
 **NielsenRetail** processes Retail Scanner Data.
 
