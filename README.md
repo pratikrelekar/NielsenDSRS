@@ -4,7 +4,8 @@
 | | |
 | --- | --- |
 | License | [![License](https://img.shields.io/badge/LICENSE-blue)](https://github.com/pratikrelekar/NielsenDSRS/blob/main/LICENSE) |
-| Dependencies | [![Dask Latest Release](https://img.shields.io/badge/Dask-orange)](https://www.dask.org) | [![Distributed](https://img.shields.io/badge/distributed-yellow)](https://distributed.dask.org) | [![Numpy](https://img.shields.io/badge/numpy-blue)](https://numpy.org)
+| Dependencies | [![Dask Latest Release](https://img.shields.io/badge/Dask-orange)](https://www.dask.org) \| [![Distributed](https://img.shields.io/badge/distributed-yellow)](https://distributed.dask.org) \| [![Numpy](https://img.shields.io/badge/numpy-blue)](https://numpy.org) |
+
 
 
 
