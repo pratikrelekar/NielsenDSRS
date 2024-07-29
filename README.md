@@ -112,5 +112,8 @@ client
 This library was developed at [**Data Science Research Services(University of Illinois at Urbana-Champaign)**](https://dsrs.illinois.edu) in 2024 and has been under active development since then. Currently supports Nielsen Retail Scanner data from 2006 to 2020.
 
 
+## Getting help
+
+For general questions and discussions can also take place on the [**DSRS mailing list**](dsrs@business.illinois.edu).
 
 
