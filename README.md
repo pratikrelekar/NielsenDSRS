@@ -34,7 +34,6 @@ Please note that Nielsen retail data is proprietary and access is restricted to 
 - [License](#license)
 - [Background](#background)
 - [Getting Help](#getting-help)
-- [Discussion and Development](#discussion-and-development)
 
 ## Main Features
 Here are just a few of the things that NielsenRetail does well:
@@ -114,6 +113,6 @@ This library was developed at [**Data Science Research Services(University of Il
 
 ## Getting help
 
-For general questions and discussions can also take place on the [**DSRS mailing list**](dsrs@business.illinois.edu).
+For general questions and discussions can also take place on the [**DSRS mailing list**](https://dsrs.illinois.edu/about/faq).
 
 
