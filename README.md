@@ -77,5 +77,7 @@ Before using NielsenRetail, ensure that all dependencies are correctly installed
 
 ## Background
 
-This library was developed at [**Data Science Research Services(University of Illinois at Urbana-Champaign)**](https://dsrs.illinois.edu) in 2024 and has been under active development since then. Currently, it functions for Nielsen(2006-2020) Retain Scanner data.
+This library was developed at [**Data Science Research Services(University of Illinois at Urbana-Champaign)**](https://dsrs.illinois.edu) in 2024 and has been under active development since then. Currently supports Nielsen Retail Scanner data from 2006 to 2020.
+
+
 
