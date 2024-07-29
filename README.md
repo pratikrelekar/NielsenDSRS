@@ -93,9 +93,10 @@ print(client)
 ```
 
 
-To utilize the power of the library using auxiliary memory cluster for large data processing
+To utilize the power of the Dask, using auxilary memory cluster for large data processing
 ```sh
 # you can only connect to the cluster from inside Python client environment
+from dask.distributed import Client
 client = Client('dask-scheduler.default.svc.cluster.local:address') #Replace the address with your actual address of the memory cluster
 client
 ```
