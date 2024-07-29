@@ -26,7 +26,7 @@ Please note that Nielsen retail data is proprietary and access is restricted to 
 - [Main Features](#main-features)
 - [Where to get it](#where-to-get-it)
 - [Dependencies](#dependencies)
-- [Installation from sources](#installation-from-sources)
+- [Installation process](#installation-process)
 - [License](#license)
 - [Documentation](#documentation)
 - [Background](#background)
@@ -36,5 +36,7 @@ Please note that Nielsen retail data is proprietary and access is restricted to 
 ## Main Features
 Here are just a few of the things that NielsenRetail does well:
   - Efficiently manages Nielsen directory and hierarchy, simplifying the process for researchers and significantly reducing the time needed to navigate through Nielsen documentation.
-  - Size mutability: Processes dataframes [**larger-than-memory**][https://examples.dask.org/dataframe.html] on a single machine through batch processing.
-  - 
+  - Size mutability: Processes dataframes [**larger-than-memory**](https://examples.dask.org/dataframe.html) on a single machine through batch processing.
+  - Distributed computing for terabyte sized datasets enhancing the overall data reading speed by utlising [**low-latency**](https://distributed.dask.org/en/stable/efficiency.html) feature of Dask.
+  - Provides simple yet distinct commands for separating sales, stores, and products data for analysis purposes.
+  - This package has excellent compatibility with [**Numpy**](https://numpy.org), [**Pandas**](https://pandas.pydata.org), [**Scikit-learn**](https://scikit-learn.org/stable/), [**SQL databases** like Postgres](https://www.postgresql.org) etc.
