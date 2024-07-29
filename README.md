@@ -49,6 +49,5 @@ Binary installers will be available at [Python Package Index (PyPI)](https://pyp
 
 For pip install:
 ```sh
-#
 pip install git+https://github.com/pratikrelekar/NielsenDSRS
 ```
