@@ -48,10 +48,16 @@ https://github.com/pratikrelekar/NielsenDSRS
 
 Binary installers will be available at [Python Package Index (PyPI)](https://pypi.org/)
 
-For pip install:
+For Github pip install:
 ```sh
 pip install git+https://github.com/pratikrelekar/NielsenDSRS
 ```
+
+For pip install requirements:
+```sh
+python -m pip install -r requirements.txt
+```
+
 
 ## Dependencies
 
@@ -63,3 +69,5 @@ Before using NielsenRetail, ensure that all dependencies are correctly installed
 - [Dask Distributed - Enables parallel computing and scaling to clusters for large computations, enhancing Dask’s capabilities to work across multiple machines by distributing tasks and managing workloads efficiently](https://pypi.org/project/distributed/2024.1.1/)
 - [Toolz - Provides functional utilities for working with iterable data, enabling more efficient and readable data processing by offering a set of pure functions inspired by constructs from functional programming](https://pypi.org/project/toolz/0.12.0/)
 - [Msgpack - Binary serialization format that allows for efficient, compact storage and is used for exchanging data between multiple languages, similar to JSON but faster and smaller](https://pypi.org/project/msgpack/1.0.7/)
+
+
