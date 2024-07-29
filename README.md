@@ -26,7 +26,6 @@ Please note that Nielsen retail data is proprietary and access is restricted to 
 - [Main Features](#main-features)
 - [Where to get it](#where-to-get-it)
 - [Dependencies](#dependencies)
-- [Installation process](#installation-process)
 - [License](#license)
 - [Documentation](#documentation)
 - [Background](#background)
@@ -40,3 +39,16 @@ Here are just a few of the things that NielsenRetail does well:
   - Distributed computing for terabyte sized datasets enhancing the overall data reading speed by utlising [**low-latency**](https://distributed.dask.org/en/stable/efficiency.html) feature of Dask.
   - Provides simple yet distinct commands for separating sales, stores, and products data for analysis purposes.
   - This package has excellent compatibility with [**Numpy**](https://numpy.org), [**Pandas**](https://pandas.pydata.org), [**Scikit-learn**](https://scikit-learn.org/stable/), [**SQL databases** like Postgres](https://www.postgresql.org) etc.
+
+
+## Where to get it
+The source code is currently hosted on GitHub at:
+https://github.com/pratikrelekar/NielsenDSRS
+
+Binary installers will be available at [Python Package Index (PyPI)](https://pypi.org/)
+
+For pip install:
+```sh
+# or PyPI
+pip install git+https://github.com/pratikrelekar/NielsenDSRS
+```
