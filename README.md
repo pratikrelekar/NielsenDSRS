@@ -76,6 +76,30 @@ Before using NielsenRetail, ensure that all dependencies are correctly installed
 
 ## How to use
 
+For Local on system memory:
+
+```sh
+from dask.distributed import Client
+
+# # Calculate memory per worker based on total system memory
+total_memory_gb = SYSTEM_RAM  # Your system's total RAM in GB (Edit as per system memory)
+n_workers = WORKERS         # Number of workers you want to use (Edit the total workers you want)
+memory_per_worker_gb = int(total_memory_gb / n_workers)  # Memory per worker in GB
+
+# Start the client with given specifications
+client = Client(n_workers=n_workers, threads_per_worker=1, 
+                memory_limit=f'{memory_per_worker_gb}GB')
+print(client)
+```
+
+
+To utilize the power of the library using auxiliary memory cluster for large data processing
+```sh
+# you can only connect to the cluster from inside Python client environment
+client = Client('dask-scheduler.default.svc.cluster.local:address') #Replace the address with your actual address of the memory cluster
+client
+```
+
 
 ## License
 
