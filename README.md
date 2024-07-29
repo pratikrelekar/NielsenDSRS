@@ -28,7 +28,6 @@ Please note that Nielsen retail data is proprietary and access is restricted to 
 - [Where to get it](#where-to-get-it)
 - [Dependencies](#dependencies)
 - [License](#license)
-- [Documentation](#documentation)
 - [Background](#background)
 - [Getting Help](#getting-help)
 - [Discussion and Development](#discussion-and-development)
@@ -70,4 +69,13 @@ Before using NielsenRetail, ensure that all dependencies are correctly installed
 - [Toolz - Provides functional utilities for working with iterable data, enabling more efficient and readable data processing by offering a set of pure functions inspired by constructs from functional programming](https://pypi.org/project/toolz/0.12.0/)
 - [Msgpack - Binary serialization format that allows for efficient, compact storage and is used for exchanging data between multiple languages, similar to JSON but faster and smaller](https://pypi.org/project/msgpack/1.0.7/)
 
+
+## License
+
+[MIT License](https://github.com/pratikrelekar/NielsenDSRS/blob/main/LICENSE)
+
+
+## Background
+
+This library was developed at [**Data Science Research Services(University of Illinois at Urbana-Champaign)**](https://dsrs.illinois.edu) in 2024 and has been under active development since then. Currently, it functions for Nielsen(2006-2020) Retain Scanner data.
 
