@@ -32,3 +32,9 @@ Please note that Nielsen retail data is proprietary and access is restricted to 
 - [Background](#background)
 - [Getting Help](#getting-help)
 - [Discussion and Development](#discussion-and-development)
+
+## Main Features
+Here are just a few of the things that NielsenRetail does well:
+  - Efficiently manages Nielsen directory and hierarchy, simplifying the process for researchers and significantly reducing the time needed to navigate through Nielsen documentation.
+  - Size mutability: Processes dataframes [**larger-than-memory**][https://examples.dask.org/dataframe.html] on a single machine through batch processing.
+  - 
