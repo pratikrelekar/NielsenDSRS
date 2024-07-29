@@ -4,7 +4,8 @@
 | | |
 | --- | --- |
 | License | [![License](https://img.shields.io/badge/LICENSE-blue)](https://github.com/pratikrelekar/NielsenDSRS/blob/main/LICENSE) |
-| Dependencies | [![Dask Latest Release](https://img.shields.io/badge/Dask-orange)](https://www.dask.org) \| [![Distributed](https://img.shields.io/badge/distributed-yellow)](https://distributed.dask.org) \| [![Numpy](https://img.shields.io/badge/numpy-green)](https://numpy.org) \| [![toolz](https://img.shields.io/badge/toolz-red)](https://github.com/pytoolz/toolz)\| [![Msgpack](https://img.shields.io/badge/msgpack-brown)](https://msgpack.org)
+| Dependencies | [![Pandas](https://img.shields.io/badge/pandas-navy)](https://pandas.pydata.org) \| [![Dask Latest Release](https://img.shields.io/badge/Dask-orange)](https://www.dask.org) \| [![Distributed](https://img.shields.io/badge/distributed-yellow)](https://distributed.dask.org) \| [![Numpy](https://img.shields.io/badge/numpy-green)](https://numpy.org) \| [![toolz](https://img.shields.io/badge/toolz-red)](https://github.com/pytoolz/toolz)\| [![Msgpack](https://img.shields.io/badge/msgpack-brown)](https://msgpack.org)
+| Meta | [![PyPI](https://img.shields.io/badge/pypi-yellow)](https://pypi.org)
 
 
 
