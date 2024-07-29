@@ -4,7 +4,7 @@
 | | |
 | --- | --- |
 | License | [![License](https://img.shields.io/badge/LICENSE-blue)](https://github.com/pratikrelekar/NielsenDSRS/blob/main/LICENSE) |
-| Dependencies | [![Dask Latest Release](https://img.shields.io/badge/Dask-orange)](https://www.dask.org) \| [![Distributed](https://img.shields.io/badge/distributed-yellow)](https://distributed.dask.org) \| [![Numpy](https://img.shields.io/badge/numpy-green)](https://numpy.org) \| [![toolz](https://img.shields.io/badge/toolz-red)](https://github.com/pytoolz/toolz)\|
+| Dependencies | [![Dask Latest Release](https://img.shields.io/badge/Dask-orange)](https://www.dask.org) \| [![Distributed](https://img.shields.io/badge/distributed-yellow)](https://distributed.dask.org) \| [![Numpy](https://img.shields.io/badge/numpy-green)](https://numpy.org) \| [![toolz](https://img.shields.io/badge/toolz-red)](https://github.com/pytoolz/toolz)\| [![Msgpack](https://img.shields.io/badge/msgpack-brown)](https://msgpack.org)
 
 
 
@@ -51,3 +51,14 @@ For pip install:
 ```sh
 pip install git+https://github.com/pratikrelekar/NielsenDSRS
 ```
+
+## Dependencies
+
+Before using NielsenRetail, ensure that all dependencies are correctly installed. Additionally, verify that the Client hosting the Python environment, the Scheduler, and the Worker nodes all have the same version installed.
+
+- [NumPy - Adds support for large, multi-dimensional arrays, matrices and high-level mathematical functions to operate on these arrays](https://pypi.org/project/numpy/1.26.3/)
+- [Pandas - Provides high-performance, easy-to-use data structures, and data analysis tools.](https://pypi.org/project/pandas/2.2.0/)
+- [Dask - Flexible parallel computing library for analytic computing, enabling performance at scale for the tools of your choice](https://pypi.org/project/dask/2024.1.1/)
+- [Dask Distributed - Enables parallel computing and scaling to clusters for large computations, enhancing Dask’s capabilities to work across multiple machines by distributing tasks and managing workloads efficiently](https://pypi.org/project/distributed/2024.1.1/)
+- [Toolz - Provides functional utilities for working with iterable data, enabling more efficient and readable data processing by offering a set of pure functions inspired by constructs from functional programming](https://pypi.org/project/toolz/0.12.0/)
+- [Msgpack - Binary serialization format that allows for efficient, compact storage and is used for exchanging data between multiple languages, similar to JSON but faster and smaller](https://pypi.org/project/msgpack/1.0.7/)
