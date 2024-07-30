@@ -21,7 +21,7 @@ Information about the Retail Scanner data can be found here: [**Kilts Center for
 
 ### Access to Nielsen Retail Data:
 
-Please note that Nielsen retail data is proprietary and access is restricted to individuals whose institutions have an existing subscription or agreement with Nielsen. If you intend to use this library for accessing and analyzing Nielsen data, you must first ensure that you are authorized to do so by your institution. Unauthorized access or use of this data may violate terms of use and could have legal implications. Nielsen dataset should strictly follow standard naming convention as per laid out by Nielsen and Kilts Center of Marketing and under no circumstances the naming convention should be changed.
+Please note that Nielsen Retail data is proprietary and access is restricted to individuals whose institutions have an existing subscription or agreement with Nielsen. If you intend to use this library for accessing and analyzing Nielsen data, you must first ensure that you are authorized to do so by your institution. Unauthorized access or use of this data may violate terms of use and could have legal implications. Nielsen dataset should strictly follow standard naming convention as per laid out by Nielsen and Kilts Center of Marketing and under no circumstances the naming convention should be changed.
 
 **NielsenRetail** processes Retail Scanner Data.
 
@@ -39,9 +39,9 @@ Please note that Nielsen retail data is proprietary and access is restricted to 
 Here are just a few of the things that NielsenRetail does well:
   - Efficiently manages Nielsen directory and hierarchy, simplifying the process for researchers and significantly reducing the time needed to navigate through Nielsen documentation.
   - Size mutability: Processes dataframes [**larger-than-memory**](https://examples.dask.org/dataframe.html) on a single machine through batch processing.
-  - Distributed computing for terabyte sized datasets enhancing the overall data reading speed by utlising [**low-latency**](https://distributed.dask.org/en/stable/efficiency.html) feature of Dask.
+  - Distributed computing for terabyte sized datasets enhancing the overall data reading speed by utlising [**low-latency**](https://distributed.dask.org/en/stable/) feature of Dask.
   - Provides simple yet distinct commands for separating sales, stores, and products data for analysis purposes.
-  - This package has excellent compatibility with [**Numpy**](https://numpy.org), [**Pandas**](https://pandas.pydata.org), [**Scikit-learn**](https://scikit-learn.org/stable/), [**SQL databases** like Postgres](https://www.postgresql.org) etc.
+  - This package has excellent compatibility with [**Numpy**](https://numpy.org), [**Pandas**](https://pandas.pydata.org), [**Scikit-learn**](https://scikit-learn.org/stable/) etc.
 
 
 ## Where to get it
@@ -113,6 +113,6 @@ This library was developed at [**Data Science Research Services(University of Il
 
 ## Getting help
 
-For general questions and discussions can also take place on the [**DSRS mailing list**](https://dsrs.illinois.edu/about/faq).
+For general questions and discussions, visit [**DSRS mailing list**](https://dsrs.illinois.edu/about/faq).
 
 
