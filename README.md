@@ -30,6 +30,7 @@ Please note that Nielsen Retail data is proprietary and access is restricted to 
 - [Main Features](#main-features)
 - [Where to get it](#where-to-get-it)
 - [Dependencies](#dependencies)
+- [Debug](#debug)
 - [How to use](#how-to-use)
 - [License](#license)
 - [Background](#background)
@@ -71,6 +72,43 @@ Before using NielsenRetail, ensure that all dependencies are correctly installed
 - [Dask Distributed - Enables parallel computing and scaling to clusters for large computations, enhancing Dask’s capabilities to work across multiple machines by distributing tasks and managing workloads efficiently](https://pypi.org/project/distributed/2024.1.1/)
 - [Toolz - Provides functional utilities for working with iterable data, enabling more efficient and readable data processing by offering a set of pure functions inspired by constructs from functional programming](https://pypi.org/project/toolz/0.12.0/)
 - [Msgpack - Binary serialization format that allows for efficient, compact storage and is used for exchanging data between multiple languages, similar to JSON but faster and smaller](https://pypi.org/project/msgpack/1.0.7/)
+
+
+
+## Debug
+
+Make sure the NielsenDSRS module and all the dependencies are installed on Dask Client, Scheduler and Worker nodes. The versions should match on all. Following is the code to debug the errors related to the version mismatch:
+
+For worker nodes:
+```sh
+def check_module():
+    try:
+        import NielsenDSRS
+        return "Installed"
+    except ImportError:
+        return "Not Installed"
+
+# Run the check across all workers
+results = client.run(check_module)
+for worker, result in results.items():
+    print(f"{worker}: {result}")
+```
+
+For Scheduler:
+```sh
+scheduler_result = client.run_on_scheduler(check_module)
+print(f"Scheduler: {scheduler_result}")
+```
+
+For Client:
+```sh
+try:
+    import NielsenDSRS
+    print("NielsenDSRS is installed on the client.")
+except ImportError:
+    print("NielsenDSRS is not installed on the client.")
+```
+
 
 
 ## How to use
