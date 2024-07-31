@@ -254,10 +254,7 @@ def get_extra(self, years=None, upc_list=None):
     return
 
 
-# Define class NielsenRetail
-# will contain all methods we use to read in the Retail Scanner Data
-# Define class NielsenRetail
-# will contain all methods we use to read in the Retail Scanner Data
+# Define class NielsenRetai will contain all methods we use to read in the Retail Scanner Data
 class NielsenRetail(object):
     """
     Object class to read in Nielsen Retail Scanner Data
@@ -351,8 +348,7 @@ class NielsenRetail(object):
         Re-runs of this method are cumulative: cannot retrieve dropped years
         without re-initializing your Retail Reader object
         """
-        # go through each of the four file types, and keep only
-        # the keys that correspond to the years we want
+        # go through each of the four file types, and keep only the keys that correspond to the years we want
 
         def aux_filter_years(orig_dict, keep = None, drop = None):
             new_dict = orig_dict
@@ -385,8 +381,7 @@ class NielsenRetail(object):
         return
 
 
-    # Filter Groups & Modules
-    # structured Similarly Enough to Combine
+    # Filter Groups & Modules structured Similarly enough to Combine
     def filter_sales(self, keep_groups = None, drop_groups = None,
                      keep_modules = None, drop_modules = None):
         """
@@ -543,9 +538,7 @@ class NielsenRetail(object):
         return
 
 
-    # Read in the Stores File
-    # again, common to all groups and modules, so if you are filtering products
-    # keep in mind the stores files will be common
+    # Read in the Stores File again, common to all groups and modules, so if you are filtering products keep in mind the stores files will be common
 
     def read_stores(self):
         """
@@ -682,10 +675,7 @@ class NielsenRetail(object):
             df_tab['panel_year'] = df_tab['week_end'].dt.year.astype('uint16')
             df_tab['revenue'] = df_tab['units'] * df_tab['unit_price']
             
-            # Join with RMS and stores data
-            # df_tab = dd.merge(df_tab, self.df_rms, on=["upc", "panel_year"], how='left')
-            # df_tab = dd.merge(df_tab, self.df_stores[['store_code_uc', 'panel_year', 'dma_code', 'retailer_code', 'parent_code']],
-            #                       on=["store_code_uc", "panel_year"], how='left')
+
             
             if add_dates:
                 unique_week_ends = df_tab['week_end'].drop_duplicates().compute()
@@ -696,13 +686,10 @@ class NielsenRetail(object):
     
             return df_tab
     
-            # have to read one module-year at a time
-            # as a pandas table, which we will later concatenate
+            # Read one module-year at a time as a pandas table, which will be later concatenated
     
         def aux_read_mod_year(filename, list_stores_df=None, add_dates=False, agg_function=None, **kwargs):
-            # Define parse and convert options
-            # parse_opt = dict(delimiter='\t')
-            # conv_opt = dict(include_columns=my_cols, dtype=dict_types)
+
             # Read CSV file into Dask DataFrame
             ddf = dd.read_csv(filename, delimiter='\t', dtype=dict_types, blocksize = '64MB').repartition(npartitions=256)[my_cols]
 
@@ -733,15 +720,11 @@ class NielsenRetail(object):
             
         # read all the modules (and groups) for one year
         def aux_read_year(year, add_dates, agg_function=None, **kwargs):
-            # print(type(self.df_stores))
-            # dask_df_stores = dd.from_pandas(self.df_stores, npartitions=10)
+
             # get the list of stores that were present in the year of choice
             list_stores = self.df_stores[self.df_stores['panel_year'] == year][['store_code_uc']]
             list_stores_df = list_stores.drop_duplicates()
-            #list_stores_df = list_stores_df.persist()
-            
-            #list_stores_array = da.from_array(list_stores.astype('float64').compute().values, chunks='auto')
-            #list_stores_array = list_stores.to_dask_array(lengths=True).compute()
+
         
             dask_frames = []
             for f in self.dict_sales[year]:
@@ -751,46 +734,12 @@ class NielsenRetail(object):
                 dask_frames.append(ddf)
             ddf_y = dd.concat(dask_frames)
 
-
-            # dask_frames = []
-            # for f in self.dict_sales[year]:
-            #     print('hello1')
-            #     ddf = aux_read_mod_year(f, list_stores_df, add_dates, agg_function, **kwargs).repartition(npartitions=1000)
-            #     print('hello8')
-                
-            #     # Compute each DataFrame and convert to Dask DataFrame
-            #     ddf_computed = ddf
-            #     dask_frames.append(ddf_computed)
-            #     print('hello9')
-            #     # Optionally, free up memory by deleting the intermediate variables
-            #     del ddf_computed
-            #     del ddf
-            
-            # ddf_y = pd.concat(dask_frames, ignore_index=True)
-        
-            # still a Dask DataFrame
             return ddf_y
         
         if self.verbose:
             print('Reading Sales')
             tick()
 
-        # dask_frames = []
-        # for year in self.dict_sales.keys():
-        #     ddf_year = aux_read_year(year, add_dates, agg_function, **kwargs)
-        #     print('Processing year:', year)
-            
-        #     Print("Hello10")
-        #     dask_frames.append(ddf_year)
-        #     print("Hello11")
-        #     # Optionally, free up memory by deleting the intermediate ddf_year variable
-        #     del ddf_year_computed
-        #     del ddf_year
-        
-        # print('Concatenating DataFrames...')
-        
-        # # Concatenate the list of computed DataFrames
-        # self.df_sales = pd.concat(dask_frames, ignore_index=True)
 
         # This does the work -- keep as Dask DataFrame
         dask_frames = []
@@ -801,21 +750,10 @@ class NielsenRetail(object):
 
         self.df_sales = dd.concat(dask_frames)
 
-        # Merge the RMS (upc_ver_uc) and store (dma, retailer_code)
-
         if self.verbose:
             print('Finished Sales')
             tock()
 
-        # NOTE: ORIGINAL CODE MERGES THIS WITH df_stores
-        # # finally, drop the stores that have no sales
-        # if 'store_code_uc' in self.df_sales.columns:
-        #     self.df_stores = self.df_stores[self.df_stores['store_code_uc'].isin(self.df_sales['store_code_uc'].unique())].compute()
-
-        # # Filter products for only those in sales data
-        # if 'upc' in self.df_sales.columns:
-        #     upc_in_sales = self.df_sales['upc'].unique()
-        #     self.df_products = self.df_products[self.df_products['upc'].isin(upc_in_sales)].compute()
 
         return
 
