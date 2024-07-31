@@ -30,8 +30,8 @@ Please note that Nielsen Retail data is proprietary and access is restricted to 
 - [Main Features](#main-features)
 - [Where to get it](#where-to-get-it)
 - [Dependencies](#dependencies)
-- [Debug](#debug)
 - [How to use](#how-to-use)
+- [Debug](#debug)
 - [License](#license)
 - [Background](#background)
 - [Getting Help](#getting-help)
@@ -75,6 +75,34 @@ Before using NielsenRetail, ensure that all dependencies are correctly installed
 
 
 
+## How to use
+
+For Local on system memory:
+
+```sh
+from dask.distributed import Client
+
+# # Calculate memory per worker based on total system memory
+total_memory_gb = SYSTEM_RAM  # Your system's total RAM in GB (Edit as per system memory)
+n_workers = WORKERS         # Number of workers you want to use (Edit the total workers you want)
+memory_per_worker_gb = int(total_memory_gb / n_workers)  # Memory per worker in GB
+
+# Start the client with given specifications
+client = Client(n_workers=n_workers, threads_per_worker=1, 
+                memory_limit=f'{memory_per_worker_gb}GB')
+print(client)
+```
+
+
+To utilize the power of the Dask, using auxilary memory cluster for large data processing
+```sh
+# you can only connect to the cluster from inside Python client environment
+from dask.distributed import Client
+client = Client('dask-scheduler.default.svc.cluster.local:address') #Replace the address with your actual address of the memory cluster
+client
+```
+
+
 ## Debug
 
 Make sure the NielsenDSRS module and all the dependencies are installed on Dask Client, Scheduler and Worker nodes. The versions should match on all. Following is the code to debug the errors related to the version mismatch:
@@ -110,33 +138,6 @@ except ImportError:
 ```
 
 
-
-## How to use
-
-For Local on system memory:
-
-```sh
-from dask.distributed import Client
-
-# # Calculate memory per worker based on total system memory
-total_memory_gb = SYSTEM_RAM  # Your system's total RAM in GB (Edit as per system memory)
-n_workers = WORKERS         # Number of workers you want to use (Edit the total workers you want)
-memory_per_worker_gb = int(total_memory_gb / n_workers)  # Memory per worker in GB
-
-# Start the client with given specifications
-client = Client(n_workers=n_workers, threads_per_worker=1, 
-                memory_limit=f'{memory_per_worker_gb}GB')
-print(client)
-```
-
-
-To utilize the power of the Dask, using auxilary memory cluster for large data processing
-```sh
-# you can only connect to the cluster from inside Python client environment
-from dask.distributed import Client
-client = Client('dask-scheduler.default.svc.cluster.local:address') #Replace the address with your actual address of the memory cluster
-client
-```
 
 
 ## License
