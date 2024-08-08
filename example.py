@@ -3,7 +3,7 @@ from NielsenDSRS import NielsenRetail
 
 # File path to RMS folder based on user's file structure. The base directory may vary depending on your setup.
 # Ensure that the Nielsen/nielsen_extracts/RMS path is correctly followed within your directory hierarchy.
-file_path = path.Path('FILE_PATH')
+file_path = 'YOUR_FILE_PATH'
 
 # Filters
 KEEP_GROUPS = [] #Group code
