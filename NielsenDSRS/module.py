@@ -4,7 +4,7 @@ Goal: Read in raw Nielsen Retail Scanner files, downloadable from the
 Kilts File Selection System
 https://kiltsfiles.chicagobooth.edu/Requests/Create-New-Request.aspx
 
-NielsenRetail.py is an auxiliary file that defines the following classes
+module.py is an auxiliary file that defines the following classes
 (1) NielsenRetail
 
 See Example.py for implementation of the NielsenRetail functions
