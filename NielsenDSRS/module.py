@@ -270,7 +270,7 @@ class NielsenRetail(object):
 
     def __init__(self, dir_read, verbose=True):
         self.verbose = verbose
-        self.dir_read = dir_read
+        self.dir_read = path.Path(dir_read) # convert the input string into a Path object
 
         # Get all files in the relevant folder
         self.files = get_files(self)
