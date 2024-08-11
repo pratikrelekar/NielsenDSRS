@@ -49,7 +49,13 @@ Here are just a few of the things that NielsenRetail does well:
 The source code is currently hosted on GitHub at:
 https://github.com/pratikrelekar/NielsenDSRS
 
-Binary installers will be available at [Python Package Index (PyPI)](https://pypi.org/)
+Binary installers is available at [Python Package Index (PyPI)](https://pypi.org/)
+
+For PyPI install:
+```sh
+pip install NielsenRetail
+```
+
 
 For Github pip install:
 ```sh
