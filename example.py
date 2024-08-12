@@ -38,8 +38,8 @@ NR.read_rms()
 NR.df_rms.head()
 
 # Filtering sales data based on selected filters. 
-RR.filter_sales(keep_groups = KEEP_GROUPS, keep_modules = KEEP_MODULES)
-RR.read_sales()
+NR.filter_sales(keep_groups = KEEP_GROUPS, keep_modules = KEEP_MODULES)
+NR.read_sales()
 # Sales data is assigned to df_sales attribute of the class. The output is dask dataframe. 
 # If you want to convert it to pandas dataframe, you can use .compute() function.
 RR.df_sales.head()
