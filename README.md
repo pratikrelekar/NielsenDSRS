@@ -77,7 +77,6 @@ Before using NielsenRetail, ensure that all dependencies are correctly installed
 - [Dask - Flexible parallel computing library for analytic computing, enabling performance at scale for the tools of your choice](https://pypi.org/project/dask/2024.1.1/)
 - [Dask Distributed - Enables parallel computing and scaling to clusters for large computations, enhancing Dask’s capabilities to work across multiple machines by distributing tasks and managing workloads efficiently](https://pypi.org/project/distributed/2024.1.1/)
 - [Toolz - Provides functional utilities for working with iterable data, enabling more efficient and readable data processing by offering a set of pure functions inspired by constructs from functional programming](https://pypi.org/project/toolz/0.12.0/)
-- [Msgpack - Binary serialization format that allows for efficient, compact storage and is used for exchanging data between multiple languages, similar to JSON but faster and smaller](https://pypi.org/project/msgpack/1.0.7/)
 
 
 
