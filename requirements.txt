@@ -1,5 +1,5 @@
-dask[dataframe]==2024.1.1 
-distributed==2024.1.1 
-numpy==1.26.3 
-pandas==2.2.0 
-toolz==0.12.0
+dask[dataframe]==2024.8.0
+distributed==2024.8.0 
+numpy==2.0.1 
+pandas==2.2.2 
+toolz==0.12.1
