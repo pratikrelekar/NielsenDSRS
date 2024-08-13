@@ -5,7 +5,7 @@
 | --- | --- |
 | License | [![License](https://img.shields.io/badge/LICENSE-blue)](https://github.com/pratikrelekar/NielsenDSRS/blob/main/LICENSE) |
 | Dependencies | [![PyPI - Version](https://img.shields.io/pypi/v/pandas?logo=pandas&logoColor=blue&label=Pandas&color=blue)](https://pandas.pydata.org) \| [![PyPI - Version](https://img.shields.io/pypi/v/dask?logo=Dask&label=Dask&color=orange)](https://www.dask.org) \| [![PyPI - Version](https://img.shields.io/pypi/v/distributed?logo=dask&logoColor=yellow&label=Distributed&color=yellow)](https://distributed.dask.org) \| [![PyPI - Version](https://img.shields.io/pypi/v/numpy?logo=numpy&logoColor=green&label=Numpy&color=green)](https://numpy.org) \| [![PyPI - Version](https://img.shields.io/pypi/v/toolz?logo=toolz&logoColor=red&label=Toolz&color=red)](https://pypi.org/project/toolz/)
-| Meta | [![PyPI - Version](https://img.shields.io/pypi/v/NielsenRetail?label=PyPI)](https://pypi.org/project/NielsenRetail/)
+| Meta | [![PyPI - Version](![PyPI - Version](https://img.shields.io/pypi/v/NielsenRetail?label=PyPI&color=orange))](https://pypi.org/project/NielsenRetail/)
 
 
 
