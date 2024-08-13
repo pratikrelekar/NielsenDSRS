@@ -33,6 +33,8 @@ jobs:
       run: rm -rf dist/*
     - name: Build package
       run: python -m build
+    - name: Show setup.py
+      run: cat setup.py
     - name: List distribution files
       run: ls -la dist/
     - name: Publish package
