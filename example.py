@@ -1,4 +1,3 @@
-import pathlib as path
 from NielsenDSRS import NielsenRetail
 
 # File path to RMS folder based on user's file structure. The base directory may vary depending on your setup.
