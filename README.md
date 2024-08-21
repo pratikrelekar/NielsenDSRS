@@ -59,7 +59,7 @@ pip install NielsenIQRetail
 
 For Github pip install:
 ```sh
-pip install git+https://github.com/pratikrelekar/NielsenIQDSRS
+pip install git+https://github.com/pratikrelekar/NielsenDSRS
 ```
 
 For pip install requirements:
@@ -136,10 +136,10 @@ print(f"Scheduler: {scheduler_result}")
 For Client:
 ```sh
 try:
-    import NielsenIQDSRS
-    print("NielsenIQDSRS is installed on the client.")
+    import NielsenDSRS
+    print("NielsenDSRS is installed on the client.")
 except ImportError:
-    print("NielsenIQDSRS is not installed on the client.")
+    print("NielsenDSRS is not installed on the client.")
 ```
 
 
@@ -147,16 +147,16 @@ If there is a mismatch or if the NielsenIQRetail is not correctly installed, fol
 
 
 ```sh
-# Function to install NielsenIQDSRS
-def install_nielseniqdsrs():
+# Function to install NielsenDSRS
+def install_nielsendsrs():
     import subprocess
     subprocess.check_call(["pip", "install", "NielsenIQRetail"])
 
 # Install on all workers
-c.run(install_nielseniqdsrs)
+c.run(install_nielsendsrs)
 
 # Install on the scheduler
-c.run_on_scheduler(install_nielseniqdsrs)
+c.run_on_scheduler(install_nielsendsrs)
 ```
 
 
