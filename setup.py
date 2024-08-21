@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="NielsenIQRetail",
-    version="0.2.3",  # Update this with your new version
+    version="0.2.4",  # Update this with your new version
     packages=find_packages(exclude=["tests*"]),
     install_requires=[
         "dask[dataframe]==2024.1.1",
