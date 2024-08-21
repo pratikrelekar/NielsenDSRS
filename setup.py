@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 setup(
-    name="NielsenRetail",
+    name="NielsenIQRetail",
     version="0.1.2",  # Update this with your new version
     packages=find_packages(exclude=["tests*"]),
     install_requires=[
@@ -13,10 +13,10 @@ setup(
     ],
     author="Pratik Relekar, Hrishikesh Relekar, Matias Carrasco Kind",
     author_email="relekar2@illinois.edu, hrishkesh.relekar@chicagobooth.edu, mcarras2@illinois.edu",
-    description="Nielsen Reader’s main purpose is to facilitate ease of processing of Nielsen Retail Scanner data...",
+    description="NielsenIQ Reader’s main purpose is to facilitate ease of processing of NielsenIQ Retail Scanner data",
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
-    url="https://github.com/pratikrelekar/NielsenDSRS",
+    url="https://github.com/pratikrelekar/NielsenIQDSRS",
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
