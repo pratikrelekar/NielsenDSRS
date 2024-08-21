@@ -2,14 +2,14 @@ from setuptools import setup, find_packages
 
 setup(
     name="NielsenIQRetail",
-    version="0.2.2",  # Update this with your new version
+    version="0.2.3",  # Update this with your new version
     packages=find_packages(exclude=["tests*"]),
     install_requires=[
-        "dask[dataframe]==2024.8.0",
-        "distributed==2024.8.0",
-        "numpy==2.0.1",
-        "pandas==2.2.2",
-        "toolz==0.12.1"
+        "dask[dataframe]==2024.1.1",
+        "distributed==2024.1.1",
+        "numpy==1.26.4",
+        "pandas==2.2.0",
+        "toolz==0.12.0"
     ],
     author="Pratik Relekar, Hrishikesh Relekar, Matias Carrasco Kind",
     author_email="relekar2@illinois.edu, hrishkesh.relekar@chicagobooth.edu, mcarras2@illinois.edu",
