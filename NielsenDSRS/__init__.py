@@ -1,2 +1,2 @@
-from .module import NielsenRetail
-__version__ = '0.1.1'
+from .module import NielsenIQRetail
+__version__ = '0.1.3'
