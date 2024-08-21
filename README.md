@@ -1,4 +1,4 @@
-# Nielsen Retail Reader
+# NielsenIQ Retail Reader
 
 
 | | |
@@ -12,18 +12,18 @@
 
 ## Overview:
 
-**Nielsen Retail Reader** is a special-purpose library and it's main purpose is to facilitate ease of processing of Nielsen Retail Scanner data of Kilt’s Center’s Nielsen IQ data used for Academic research only. The striking feature of this library is Dask which acts as an underlying framework that uniquely empowers the user to read Nielsen data with limited on device resources (by processing larger-than-memory data in chunks and distributed fashion). It understands the Kilts/Nielsen directory structure.
+**NielsenIQ Retail Reader** is a special-purpose library and it's main purpose is to facilitate ease of processing of NielsenIQ Retail Scanner data of Kilt’s Center’s Nielsen IQ data used for Academic research only. The striking feature of this library is Dask which acts as an underlying framework that uniquely empowers the user to read NielsenIQ data with limited on device resources (by processing larger-than-memory data in chunks and distributed fashion). It understands the Kilts/Nielsen directory structure.
 
 ## Data:
 Information about the Retail Scanner data can be found here: [**Kilts Center for Marketing**](https://www.chicagobooth.edu/research/kilts/research-data/nielseniq)
 
 ## IMPORTANT:
 
-### Access to Nielsen Retail Data:
+### Access to NielsenIQ Retail Data:
 
-Please note that Nielsen Retail data is proprietary and access is restricted to individuals whose institutions have an existing subscription or agreement with Nielsen. If you intend to use this library for accessing and analyzing Nielsen data, you must first ensure that you are authorized to do so by your institution. Unauthorized access or use of this data may violate terms of use and could have legal implications. Nielsen dataset should strictly follow standard naming convention as per laid out by Nielsen and Kilts Center of Marketing and under no circumstances the naming convention should be changed.
+Please note that NielsenIQ Retail data is proprietary and access is restricted to individuals whose institutions have an existing subscription or agreement with NielsenIQ. If you intend to use this library for accessing and analyzing NielsenIQ data, you must first ensure that you are authorized to do so by your institution. Unauthorized access or use of this data may violate terms of use and could have legal implications. Nielsen dataset should strictly follow standard naming convention as per laid out by Nielsen and Kilts Center of Marketing and under no circumstances the naming convention should be changed.
 
-**NielsenRetail** processes Retail Scanner Data.
+**NielsenIQRetail** processes Retail Scanner Data.
 
 ## Table of Contents
 
@@ -37,8 +37,8 @@ Please note that Nielsen Retail data is proprietary and access is restricted to 
 - [Getting Help](#getting-help)
 
 ## Main Features
-Here are just a few of the things that NielsenRetail does well:
-  - Efficiently manages Nielsen directory and hierarchy, simplifying the process for researchers and significantly reducing the time needed to navigate through Nielsen documentation.
+Here are just a few of the things that NielsenIQRetail does well:
+  - Efficiently manages NielsenIQ directory and hierarchy, simplifying the process for researchers and significantly reducing the time needed to navigate through NielsenIQ documentation.
   - Size mutability: Processes dataframes [**larger-than-memory**](https://examples.dask.org/dataframe.html) on a single machine through batch processing.
   - Distributed computing for terabyte sized datasets enhancing the overall data reading speed by utlising [**low-latency**](https://distributed.dask.org/en/stable/) feature of Dask.
   - Provides simple yet distinct commands for separating sales, stores, and products data for analysis purposes.
@@ -47,19 +47,19 @@ Here are just a few of the things that NielsenRetail does well:
 
 ## Where to get it
 The source code is currently hosted on GitHub at:
-https://github.com/pratikrelekar/NielsenDSRS
+https://github.com/pratikrelekar/NielsenIQDSRS
 
 Binary installers is available at [Python Package Index (PyPI)](https://pypi.org/)
 
 For PyPI install:
 ```sh
-pip install NielsenRetail
+pip install NielsenIQRetail
 ```
 
 
 For Github pip install:
 ```sh
-pip install git+https://github.com/pratikrelekar/NielsenDSRS
+pip install git+https://github.com/pratikrelekar/NielsenIQDSRS
 ```
 
 For pip install requirements:
@@ -70,7 +70,7 @@ python -m pip install -r requirements.txt
 
 ## Dependencies
 
-Before using NielsenRetail, ensure that all dependencies are correctly installed. Additionally, verify that the Client hosting the Python environment, the Scheduler, and the Worker nodes all have the same version installed.
+Before using NielsenIQRetail, ensure that all dependencies are correctly installed. Additionally, verify that the Client hosting the Python environment, the Scheduler, and the Worker nodes all have the same version installed.
 
 - [NumPy - Adds support for large, multi-dimensional arrays, matrices and high-level mathematical functions to operate on these arrays](https://pypi.org/project/numpy/1.26.3/)
 - [Pandas - Provides high-performance, easy-to-use data structures, and data analysis tools.](https://pypi.org/project/pandas/2.2.0/)
@@ -116,7 +116,7 @@ For worker nodes:
 ```sh
 def check_module():
     try:
-        import NielsenDSRS
+        import NielsenIQDSRS
         return "Installed"
     except ImportError:
         return "Not Installed"
@@ -136,27 +136,27 @@ print(f"Scheduler: {scheduler_result}")
 For Client:
 ```sh
 try:
-    import NielsenDSRS
-    print("NielsenDSRS is installed on the client.")
+    import NielsenIQDSRS
+    print("NielsenIQDSRS is installed on the client.")
 except ImportError:
-    print("NielsenDSRS is not installed on the client.")
+    print("NielsenIQDSRS is not installed on the client.")
 ```
 
 
-If there is a mismatch or if the NielsenRetail is not correctly installed, follow these steps:
+If there is a mismatch or if the NielsenIQRetail is not correctly installed, follow these steps:
 
 
 ```sh
-# Function to install NielsenDSRS
-def install_nielsendsrs():
+# Function to install NielsenIQDSRS
+def install_nielseniqdsrs():
     import subprocess
-    subprocess.check_call(["pip", "install", "NielsenRetail"])
+    subprocess.check_call(["pip", "install", "NielsenIQRetail"])
 
 # Install on all workers
-c.run(install_nielsendsrs)
+c.run(install_nielseniqdsrs)
 
 # Install on the scheduler
-c.run_on_scheduler(install_nielsendsrs)
+c.run_on_scheduler(install_nielseniqdsrs)
 ```
 
 
@@ -164,12 +164,12 @@ c.run_on_scheduler(install_nielsendsrs)
 
 ## License
 
-[MIT License](https://github.com/pratikrelekar/NielsenDSRS/blob/main/LICENSE)
+[MIT License](https://github.com/pratikrelekar/NielsenIQDSRS/blob/main/LICENSE)
 
 
 ## Background
 
-This library was developed at [**Data Science Research Services(University of Illinois at Urbana-Champaign)**](https://dsrs.illinois.edu) in 2024 and has been under active development since then. Currently supports Nielsen Retail Scanner data from 2006 to 2020.
+This library was developed at [**Data Science Research Services(University of Illinois at Urbana-Champaign)**](https://dsrs.illinois.edu) in 2024 and has been under active development since then. Currently supports NielsenIQ Retail Scanner data from 2006 to 2020.
 
 
 ## Getting help
