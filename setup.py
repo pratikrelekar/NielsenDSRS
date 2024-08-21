@@ -7,7 +7,7 @@ setup(
     install_requires=[
         "dask[dataframe]==2024.1.1",
         "distributed==2024.1.1",
-        "numpy==1.26.4",
+        "numpy==1.26.3",
         "pandas==2.2.0",
         "toolz==0.12.0"
     ],
