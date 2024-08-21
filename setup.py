@@ -16,7 +16,7 @@ setup(
     description="NielsenIQ Reader’s main purpose is to facilitate ease of processing of NielsenIQ Retail Scanner data",
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
-    url="https://github.com/pratikrelekar/NielsenIQDSRS",
+    url="https://github.com/pratikrelekar/NielsenDSRS",
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
