@@ -59,7 +59,7 @@ pip install NielsenIQRetail
 
 For Github pip install:
 ```sh
-pip install git+https://github.com/pratikrelekar/NielsenIQDSRS
+pip install git+https://github.com/pratikrelekar/NielsenDSRS
 ```
 
 For pip install requirements:
