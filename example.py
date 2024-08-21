@@ -1,4 +1,4 @@
-from NielsenDSRS import NielsenRetail
+from NielsenDSRS import NielsenIQRetail
 
 # File path to RMS folder based on user's file structure. The base directory may vary depending on your setup.
 # Ensure that the Nielsen/nielsen_extracts/RMS path is correctly followed within your directory hierarchy.
@@ -18,7 +18,7 @@ dmas = #DMA code
 # supermarkets stores only (no superstores/pharmacies/etc)
 channels = []
 
-NR = NielsenRetail(file_path)
+NR = NielsenIQRetail(file_path)
 NR.filter_years(keep=KEEP_YEARS)
 
 # Read all Stores files for selected filters above. The output is pandas dataframe.
