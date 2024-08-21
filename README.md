@@ -116,7 +116,7 @@ For worker nodes:
 ```sh
 def check_module():
     try:
-        import NielsenIQDSRS
+        import NielsenDSRS
         return "Installed"
     except ImportError:
         return "Not Installed"
