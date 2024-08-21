@@ -143,6 +143,23 @@ except ImportError:
 ```
 
 
+If there is a mismatch or if the NielsenRetail is not correctly installed, follow these steps:
+
+
+```sh
+# Function to install NielsenDSRS
+def install_nielsendsrs():
+    import subprocess
+    subprocess.check_call(["pip", "install", "NielsenRetail"])
+
+# Install on all workers
+c.run(install_nielsendsrs)
+
+# Install on the scheduler
+c.run_on_scheduler(install_nielsendsrs)
+```
+
+
 
 
 ## License
