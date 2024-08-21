@@ -89,7 +89,7 @@ from dask.distributed import Client
 
 # # Calculate memory per worker based on total system memory
 total_memory_gb = SYSTEM_RAM  # Your system's total RAM in GB (Edit as per system memory)
-n_workers = WORKERS         # Number of workers you want to use (Edit the total workers you want)
+n_workers = WORKERS         # Number of cores on system (Edit the total workers you want)
 memory_per_worker_gb = int(total_memory_gb / n_workers)  # Memory per worker in GB
 
 # Start the client with given specifications
