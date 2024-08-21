@@ -1,13 +1,13 @@
 """
 
-Goal: Read in raw Nielsen Retail Scanner files, downloadable from the
+Goal: Read in raw NielsenIQ Retail Scanner files, downloadable from the
 Kilts File Selection System
 https://kiltsfiles.chicagobooth.edu/Requests/Create-New-Request.aspx
 
 module.py is an auxiliary file that defines the following classes
-(1) NielsenRetail
+(1) NielsenIQRetail
 
-See Example.py for implementation of the NielsenRetail functions
+See Example.py for implementation of the NielsenIQRetail functions
 """
 
 
@@ -122,8 +122,8 @@ dict_column_map = {'Household_Cd':'household_code',
 # function to get all files within a folder
 def get_files(self):
     """
-    Input: NielsenRetail object
-    Get all Files for NielsenRetail object
+    Input: NielsenIQRetail object
+    Get all Files for NielsenIQRetail object
     """
     files = [i for i in self.dir_read.glob('**/*.*sv') if '._' not in i.stem]
     if len(files) == 0:
@@ -165,13 +165,13 @@ def get_products(self, upc_list=None,
                  keep_departments=None, drop_departments=None):
     """
     Arguments:
-        Required: NielsenRetail object
+        Required: NielsenIQRetail object
         Optional: keep_groups, drop_groups, keep_modules, drop_modules
         Each takes a list of group codes or module codes
 
     Select the Product file and read it in Nielsen Retail Reader
     Many Filter Options:
-    upc_list: a list of integer UPCs to select, ignores versioning by Nielsen
+    upc_list: a list of integer UPCs to select, ignores versioning by NielsenIQ
     keep_groups, drop_groups: selects or drops product group codes
     keep_modules, drop_modules: selects or drops product module codes
     """
@@ -254,10 +254,10 @@ def get_extra(self, years=None, upc_list=None):
     return
 
 
-# Define class NielsenRetai will contain all methods we use to read in the Retail Scanner Data
-class NielsenRetail(object):
+# Define class NielsenIQRetail will contain all methods we use to read in the Retail Scanner Data
+class NielsenIQRetail(object):
     """
-    Object class to read in Nielsen Retail Scanner Data
+    Object class to read in NielsenIQ Retail Scanner Data
     Files created:
         df_extra: from annual product_extra files
         df_products: from Master product file
@@ -291,17 +291,17 @@ class NielsenRetail(object):
         try:
             self.all_groups = set(self.get_group(f) for f in self.files_sales)
         except:
-            raise Exception('Could not get Group Code from Movement Files. Use original Nielsen naming conventions')
+            raise Exception('Could not get Group Code from Movement Files. Use original NielsenIQ naming conventions')
 
         try:
             self.all_modules = set(self.get_module(f) for f in self.files_sales)
         except:
-            raise Exception('Could not get Module Code from Movement Files. Use original Nielsen naming conventions')
+            raise Exception('Could not get Module Code from Movement Files. Use original NielsenIQ naming conventions')
 
         try:
             self.all_years = set(get_year(f) for f in self.files_sales if get_year(f) is not None)
         except:
-            raise Exception('Could not get Year from Movement Files. Use original Nielsen naming conventions')
+            raise Exception('Could not get Year from Movement Files. Use original NielsenIQ naming conventions')
 
         self.files_stores = [f for f in self.files_annual if 'stores' in f.name]
         self.files_rms = [f for f in self.files_annual if 'rms_versions' in f.name]
@@ -445,7 +445,7 @@ class NielsenRetail(object):
         Nielsen notes the products may have changed sufficiently
         And codes these as a new product "version" in the later years
         Columns: upc, upc_ver_uc, panel_year
-        See Nielsen documentation for a full description of these variables.
+        See NielsenIQ documentation for a full description of these variables.
         """
         
         # Create a list of delayed reads for each CSV file
@@ -469,16 +469,16 @@ class NielsenRetail(object):
         Function: populates self.df_products
     
         Arguments: 
-            Required: RetailReader or PanelReader object
+            Required: RetailReader object
             Optional: keep_groups, drop_groups, keep_modules, drop_modules,
             upc_list
             Each takes a list of group codes, module codes, or upcs
     
         Select the Product file and read it in
-        Common to both the Retail Reader and Panel Reader files
+        Common to both the Retail Reader files
         
         Options:
-        upc_list: a list of integer UPCs to select, ignores versioning by Nielsen
+        upc_list: a list of integer UPCs to select, ignores versioning by NielsenIQ
         keep_groups, drop_groups: selects or drops product group codes
         keep_modules, drop_modules: selects or drops product module codes
         
@@ -487,7 +487,7 @@ class NielsenRetail(object):
         department_descr, brand_code_uc, brand_descr, multi,
         size1_code_uc, size1_amount, size1_units, dataset_found_uc, 
         size1_change_flag_uc
-        See Nielsen documentation for a full description of these variables.
+        See NielsenIQ documentation for a full description of these variables.
         """
     
         # Call get_products function
@@ -505,10 +505,10 @@ class NielsenRetail(object):
         Function: populates self.df_extra
     
         Select the Extra [characteristics] file and read it in
-        Common to both the Retail Reader and Panel Reader files
+        Common to both the Retail Reader files
         Filter Options:
         Sometimes UPCs have repeat entries, but these tend
-        to be due to missing data and reporting issues, not changes. Nielsen
+        to be due to missing data and reporting issues, not changes. NielsenIQ
         codes product changes as different product versions.
         
         Module and Group selections not possible for the extra files. 
@@ -551,7 +551,7 @@ class NielsenRetail(object):
         channel_code, store_zip3, fips_state_code, fips_state_descr,
         fips_county_code, fips_county_descr
     
-        See Nielsen documentation for a full description of these variables.
+        See NielsenIQ documentation for a full description of these variables.
         """
         ddf_stores = dd.concat([dd.read_csv(f,  sep='\t', dtype=dict_types) 
                                 for f in self.dict_stores.values()])
@@ -582,7 +582,7 @@ class NielsenRetail(object):
         Must have read in df_stores first (cannot be empty)
         Filters stores based on DMA, State, and Channel
         
-        See Nielsen documentation for a full description of these variables.
+        See NielsenIQ documentation for a full description of these variables.
         
         """
     
@@ -639,7 +639,7 @@ class NielsenRetail(object):
         Columns: store_code_uc, upc, week_end, units, prmult, price, feature,
         display
 
-        See Nielsen documentation for a full description of these variables.        
+        See NielsenIQ documentation for a full description of these variables.        
         """
 
         # Get the relevant stores
