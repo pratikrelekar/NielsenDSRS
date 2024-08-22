@@ -21,7 +21,7 @@ Information about the Retail Scanner data can be found here: [**Kilts Center for
 
 ### Access to NielsenIQ Retail Data:
 
-Please note that NielsenIQ Retail data is proprietary and access is restricted to individuals whose institutions have an existing subscription or agreement with NielsenIQ. If you intend to use this library for accessing and analyzing NielsenIQ data, you must first ensure that you are authorized to do so by your institution. Unauthorized access or use of this data may violate terms of use and could have legal implications. Nielsen dataset should strictly follow standard naming convention as per laid out by Nielsen and Kilts Center of Marketing and under no circumstances the naming convention should be changed.
+Please note that NielsenIQ Retail data is proprietary and access is restricted to individuals whose institutions have an existing subscription or agreement with NielsenIQ. If you intend to use this library for accessing and analyzing NielsenIQ data, you must first ensure that you are authorized to do so by your institution. Unauthorized access or use of this data may violate terms of use and could have legal implications. NielsenIQ dataset should strictly follow standard naming convention as per laid out by NielsenIQ and Kilts Center of Marketing and under no circumstances the naming convention should be changed.
 
 **NielsenIQRetail** processes Retail Scanner Data.
 
