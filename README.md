@@ -12,7 +12,7 @@
 
 ## Overview:
 
-**NielsenIQ Retail Reader** is a special-purpose library and it's main purpose is to facilitate ease of processing of NielsenIQ Retail Scanner data of Kilt’s Center’s Nielsen IQ data used for Academic research only. The striking feature of this library is Dask which acts as an underlying framework that uniquely empowers the user to read NielsenIQ data with limited on device resources (by processing larger-than-memory data in chunks and distributed fashion). It understands the Kilts/Nielsen directory structure.
+**NielsenIQ Retail Reader** is a special-purpose library and it's main purpose is to facilitate ease of processing of NielsenIQ Retail Scanner data of Kilt’s Center’s Nielsen IQ data used for Academic research only. The striking feature of this library is Dask which acts as an underlying framework that uniquely empowers the user to read NielsenIQ data with limited on device resources (by processing larger-than-memory data in chunks and distributed fashion). It follows the Kilts/NielsenIQ directory structure.
 
 ## Data:
 Information about the Retail Scanner data can be found here: [**Kilts Center for Marketing**](https://www.chicagobooth.edu/research/kilts/research-data/nielseniq)
@@ -47,7 +47,7 @@ Here are just a few of the things that NielsenIQRetail does well:
 
 ## Where to get it
 The source code is currently hosted on GitHub at:
-https://github.com/pratikrelekar/NielsenIQDSRS
+https://github.com/pratikrelekar/NielsenDSRS
 
 Binary installers is available at [Python Package Index (PyPI)](https://pypi.org/)
 
