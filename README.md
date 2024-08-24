@@ -153,10 +153,10 @@ def install_nielsendsrs():
     subprocess.check_call(["pip", "install", "NielsenIQRetail"])
 
 # Install on all workers
-c.run(install_nielsendsrs)
+client.run(install_nielsendsrs)
 
 # Install on the scheduler
-c.run_on_scheduler(install_nielsendsrs)
+client.run_on_scheduler(install_nielsendsrs)
 ```
 
 
