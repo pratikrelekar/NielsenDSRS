@@ -57,7 +57,7 @@ pip install NielsenIQRetail
 ```
 
 
-For Github pip install:
+For latest development release:
 ```sh
 pip install git+https://github.com/pratikrelekar/NielsenDSRS
 ```
