@@ -12,7 +12,7 @@ setup(
         "toolz==0.12.0"
     ],
     author="Pratik Relekar, Hrishikesh Relekar, Matias Carrasco Kind",
-    author_email="relekar2@illinois.edu, hrishkesh.relekar@chicagobooth.edu, mcarras2@illinois.edu",
+    author_email="pratik.relekar@gmail.com, hrish.relekar@gmail.com, mcarras2@illinois.edu",
     description="NielsenIQ Reader’s main purpose is to facilitate ease of processing of NielsenIQ Retail Scanner data",
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
