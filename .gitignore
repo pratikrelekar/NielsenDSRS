@@ -1,0 +1,18 @@
+# Your filled-in schema — contains the proprietary data structure. NEVER commit.
+schema.yaml
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.eggs/
+
+# IDE
+.idea/
+.vscode/
+
+# OS / notebooks
+.DS_Store
+.ipynb_checkpoints/
