@@ -1,0 +1,94 @@
+# ============================================================================
+# NielsenIQRetail — schema template
+# ============================================================================
+# Copy this file to `schema.yaml` and FILL IN the blanks from YOUR OWN licensed
+# NielsenIQ / Kilts Center documentation (the data dictionary and file layout
+# that come with your subscription).
+#
+# This template ships intentionally EMPTY. The NielsenIQ file organization and
+# variable names are proprietary and restricted to licensed researchers, so they
+# are not distributed with this package — you supply them here from your own
+# access. Nothing you add to schema.yaml should be committed to a public repo.
+#
+# dtype tokens you can use (right-hand side of the dtypes maps):
+#   object, string, float32, float64, bool,
+#   Int8, Int16, Int32, Int64, UInt8, UInt16, UInt32, UInt64
+# ============================================================================
+
+# ----------------------------------------------------------------------------
+# columns: map each LOGICAL ROLE the reader uses to the ACTUAL column name in
+# your files. Leave a role blank only if you never use the method that needs it.
+# ----------------------------------------------------------------------------
+columns:
+  # role            : your file's actual column name
+  # --- movement / sales (both batches) ---
+  upc:                 # product barcode column
+  week:                # week-ending column
+  units:               # units sold column
+  price:               # price column
+  price_multiplier:    # price-multiplier column
+  store_id:            # store identifier column
+  feature:             # feature-promo column
+  display:             # display-promo column
+
+  # --- stores ---
+  year_in:             # the per-file year column as it appears in the stores file
+  year_out:            # the name to rename it to (e.g. a panel-year column)
+  dma:                 # market (DMA) code column
+  channel:             # store channel column
+  state:               # state column used for the state filter
+
+  # --- Batch 1 product master ---
+  group:               # product group code column
+  module:              # product module code column
+  department:          # department code column
+
+  # --- Batch 2 product hierarchy ---
+  h_department:        # hierarchy department column
+  super_category:      # hierarchy super-category column
+  category:            # hierarchy category column
+  segment:             # hierarchy segment column
+  sub_category:        # hierarchy sub-category column
+
+# ----------------------------------------------------------------------------
+# dtypes: for each file type, map {actual column name: dtype token}. Fill the
+# full column list for the files you read (from your data dictionary).
+# ----------------------------------------------------------------------------
+dtypes:
+  batch1: {}             # Batch 1 movement/stores/rms/extra columns
+  batch1_products: {}    # (optional) overrides for the B1 products master read
+  batch2_stores: {}
+  batch2_productdesc: {}
+  batch2_movement: {}
+  batch2_hierarchy: {}
+
+# ----------------------------------------------------------------------------
+# attributes: Batch 2 product-attributes file. List the attribute variable
+# names; the reader builds the dtype map (each name is 'object', each name+suffix
+# is Int64) automatically.
+# ----------------------------------------------------------------------------
+attributes:
+  names: []              # e.g. the attribute variable names from your docs
+  code_suffix: "_cd"     # suffix of the paired code columns
+
+# ----------------------------------------------------------------------------
+# files: your file organization — folder markers and file names. These are how
+# the reader locates and parses the files on disk.
+# ----------------------------------------------------------------------------
+files:
+  batch1:
+    product_file:         # the product master file name
+    product_parent:       # its parent folder name
+    product_grandparent:  # its grandparent folder name
+    annual_marker:        # folder name that marks annual files
+    movement_marker:      # folder name that marks movement files
+    stores_token:         # substring identifying a stores file
+    rms_token:            # substring identifying an rms-versions file
+    extra_token:          # substring identifying a products-extra file
+  batch2:
+    annual_marker:        # folder name that marks annual files
+    movement_marker:      # folder name that marks movement files
+    stores_filename:
+    productdesc_filename:
+    hierarchy_filename:
+    attributes_filename:
