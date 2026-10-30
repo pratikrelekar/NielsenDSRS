@@ -1,761 +1,587 @@
 """
+NielsenIQ Retail Scanner Reader — Unified (2006-2020 + 2021 onward)
 
-Goal: Read in raw NielsenIQ Retail Scanner files, downloadable from the
-Kilts File Selection System
-https://kiltsfiles.chicagobooth.edu/Requests/Create-New-Request.aspx
+Reads raw NielsenIQ Retail Scanner files (Kilts File Selection System) for
+Batch 1 (2006-2020), Batch 2 (2021+), or both, through one interface.
 
-module.py is an auxiliary file that defines the following classes
-(1) NielsenIQRetail
+IMPORTANT — NO SCHEMA IS HARDCODED IN THIS FILE.
+Per the Kilts Center / NielsenIQ data-use policy, the file organization and
+variable names are proprietary and available only to licensed researchers.
+This reader therefore contains processing LOGIC only; every column name,
+data type, file name, and folder name is supplied by the user at runtime
+through a schema config (see `schema.example.yaml`). Copy that template to
+`schema.yaml` and fill it in from YOUR OWN licensed NielsenIQ/Kilts
+documentation. Nothing in this repository reveals the data structure.
 
-See Example.py for implementation of the NielsenIQRetail functions
+Usage:
+    reader = NielsenIQRetail(
+        dir_read='/path/to/2006-2020/RMS',           # Batch 1 (optional)
+        dir_read_v2='/path/to/2021-Onward/RMS',       # Batch 2 (optional)
+        schema='schema.yaml',                         # your filled-in schema
+    )
+    reader.filter_years(keep=[2018, 2023])
+    reader.read_stores()
+    reader.read_sales()                               # lazy Dask DataFrame
 """
 
-
-
+import os
+import time
+import pathlib as path
 
 import pandas as pd
 import dask.dataframe as dd
-from dask import delayed
-import dask
-import dask.array as da
-import pathlib as path
-import time
 
 
-# To reset start time (with current time)
+# ───────────────────────────────────────────────────────────────────────────
+# Timer
+# ───────────────────────────────────────────────────────────────────────────
 _start_time = time.time()
 def tick():
-    """
-    Start Timer
-    """
     global _start_time
     _start_time = time.time()
-# To calculate elapsed time (since tick() function)
 def tock():
-    """
-    Stop Timer and Print Time Passed
-    """
     t_sec = round(time.time() - _start_time)
-    (t_min, t_sec) = divmod(t_sec,60)
-    (t_hour,t_min) = divmod(t_min,60)
-    print('Time passed: {}hour:{}min:{}sec'.format(t_hour,t_min,t_sec))
+    (t_min, t_sec) = divmod(t_sec, 60)
+    (t_hour, t_min) = divmod(t_min, 60)
+    print('Time passed: {}hour:{}min:{}sec'.format(t_hour, t_min, t_sec))
 
 
-
-
-dict_types = {
-    'upc': pd.UInt64Dtype(),
-    'upc_ver_uc': pd.UInt8Dtype(),
-    'product_module_code': pd.UInt16Dtype(),
-    'brand_code_uc': pd.UInt32Dtype(),
-    'multi': pd.UInt16Dtype(),
-    'size1_code_uc': pd.UInt16Dtype(),
-    'year': pd.UInt16Dtype(),
-    'panel_year': pd.UInt16Dtype(),
-    'dma_code': pd.UInt16Dtype(),
-    'retailer_code': pd.UInt16Dtype(),
-    'parent_code': pd.UInt16Dtype(),
-    'store_zip3': pd.UInt16Dtype(),
-    'fips_county_code': pd.UInt16Dtype(),
-    'fips_state_code': pd.UInt8Dtype(),
-    'store_code_uc': pd.UInt32Dtype(),
-    'week_end': pd.UInt32Dtype(),
-    'units': pd.UInt64Dtype(),
-    'prmult': pd.UInt8Dtype(),
-    'feature': pd.Int8Dtype(),
-    'display': pd.Int8Dtype(),
-    'price': 'float64',
-    'flavor_code': pd.UInt64Dtype(),
-    'flavor_descr': 'object',
-    'form_code': pd.UInt64Dtype(),
-    'form_descr': 'object',
-    'formula_code': pd.UInt64Dtype(),
-    'formula_descr': 'object',
-    'container_code': pd.UInt64Dtype(),
-    'container_descr': 'object',
-    'salt_content_code': pd.UInt64Dtype(),
-    'salt_content_descr': 'object',
-    'style_code': pd.UInt64Dtype(),
-    'style_descr': 'object',
-    'type_code': pd.UInt64Dtype(),
-    'type_descr': 'object',
-    'product_code': pd.UInt64Dtype(),
-    'product_descr': 'object',
-    'variety_code': pd.UInt64Dtype(),
-    'variety_descr': 'object',
-    'organic_claim_code': pd.UInt64Dtype(),
-    'organic_claim_descr': 'object',
-    'usda_organic_seal_code': pd.UInt64Dtype(),
-    'usda_organic_seal_descr': 'object',
-    'common_consumer_name_code': pd.UInt64Dtype(),
-    'common_consumer_name_descr': 'object',
-    'strength_code': pd.UInt64Dtype(),
-    'strength_descr': 'object',
-    'scent_code': pd.UInt64Dtype(),
-    'scent_descr': 'object',
-    'dosage_code': pd.UInt64Dtype(),
-    'dosage_descr': 'object',
-    'gender_code': pd.UInt64Dtype(),
-    'gender_descr': 'object',
-    'target_skin_condition_code': pd.UInt64Dtype(),
-    'target_skin_condition_descr': 'object',
-    'use_code': pd.UInt64Dtype(),
-    'use_descr': 'object',
-    'size2_code': pd.UInt64Dtype(),
-    'size2_amount': 'float64',
-    'size2_units': 'object',
-    'deal_flag_uc': pd.UInt8Dtype(),
-    'quantity': pd.UInt16Dtype(),
-    'household_code': pd.UInt32Dtype(),
-    'Household_Cd': pd.UInt32Dtype(),
-    'Fips_County_Desc': 'object',
-    'Fips_State_Desc': 'object',
-    'Scantrack_Market_Identifier_Desc': 'object',
-    'DMA_Name': 'object',
+# ───────────────────────────────────────────────────────────────────────────
+# Schema loading  (the schema carries ALL proprietary names/types/layout)
+# ───────────────────────────────────────────────────────────────────────────
+# Maps the dtype TOKENS used in the config to pandas dtypes. Tokens are generic
+# (they reveal nothing about the data); the column names they apply to live in
+# the user-supplied config, never here.
+_DTYPE_TOKENS = {
+    'object': 'object', 'string': 'string',
+    'float32': 'float32', 'float64': 'float64',
+    'Int8': pd.Int8Dtype(),   'Int16': pd.Int16Dtype(),
+    'Int32': pd.Int32Dtype(), 'Int64': pd.Int64Dtype(),
+    'UInt8': pd.UInt8Dtype(),   'UInt16': pd.UInt16Dtype(),
+    'UInt32': pd.UInt32Dtype(), 'UInt64': pd.UInt64Dtype(),
+    'bool': 'bool',
 }
 
-
-dict_column_map = {'Household_Cd':'household_code',
-                   'Panel_Year':'panel_year'}
+_REQUIRED_KEYS = ('columns', 'dtypes', 'files')
 
 
-# function to get all files within a folder
-def get_files(self):
+def _resolve_dtypes(d):
+    """Turn a {column: token} map into a {column: pandas dtype} map."""
+    if not d:
+        return {}
+    return {col: _DTYPE_TOKENS.get(tok, tok) for col, tok in d.items()}
+
+
+def load_schema(source):
     """
-    Input: NielsenIQRetail object
-    Get all Files for NielsenIQRetail object
+    Load the schema config.
+
+    `source` may be:
+      - a dict already in memory, or
+      - a path to a YAML file, or
+      - None -> look at env var NIELSEN_SCHEMA, else 'schema.yaml' in cwd.
+
+    The schema must define the top-level keys: columns, dtypes, files
+    (see schema.example.yaml). This function does NOT contain any NielsenIQ
+    names — it only reads what the licensed user provides.
     """
-    files = [i for i in self.dir_read.glob('**/*.*sv') if '._' not in i.stem]
-    if len(files) == 0:
-        str_err= ('Found no files! Check folder name ' +
-        'and make sure folder is unzipped.')
-        raise Exception(str_err)
-    return files
-
-
-def get_year(file, type='Sales'):
-    """
-    Arguments:
-        file: filename
-        type: 'Sales' or 'Ann' (see below)
-
-    Get year a particular file corresponds to
-    Will throw error if not an annual file
-    if type = 'Sales': the last half of the filename is the year.
-    Use type = 'Sales' if in Retail
-
-    if type = 'Ann': the grandparent folder contains the year name
-    Use type = 'Ann' if in Panel
-    """
-    if type == 'Ann':  # these have one less root
-        return int(file.parent.parent.name)
-
-    # Extract potential year and validate it
-    try:
-        year_part = file.stem.split('_')[-1]
-        return int(year_part)
-    except ValueError:
-        print(f"Skipping file with invalid year format: {file}")
-        return None
-
-
-def get_products(self, upc_list=None,
-                 keep_groups=None, drop_groups=None,
-                 keep_modules=None, drop_modules=None,
-                 keep_departments=None, drop_departments=None):
-    """
-    Arguments:
-        Required: NielsenIQRetail object
-        Optional: keep_groups, drop_groups, keep_modules, drop_modules
-        Each takes a list of group codes or module codes
-
-    Select the Product file and read it in Nielsen Retail Reader
-    Many Filter Options:
-    upc_list: a list of integer UPCs to select, ignores versioning by NielsenIQ
-    keep_groups, drop_groups: selects or drops product group codes
-    keep_modules, drop_modules: selects or drops product module codes
-    """
-    if self.files_product:
-        self.file_products = self.files_product[0]
+    if isinstance(source, dict):
+        cfg = source
     else:
-        str_err = ('Could not find a valid products.tsv under ',
-                   'Master_Files/Latest. Check folder name ',
-                   'and make sure folder is unzipped.')
-        raise Exception(str_err)
+        if source is None:
+            source = os.environ.get('NIELSEN_SCHEMA', 'schema.yaml')
+        p = path.Path(source)
+        if not p.exists():
+            raise FileNotFoundError(
+                f"Schema config not found at '{source}'. Copy schema.example.yaml "
+                f"to schema.yaml and fill it in from your own licensed NielsenIQ/"
+                f"Kilts documentation, then pass schema='schema.yaml'.")
+        try:
+            import yaml
+        except ImportError as e:
+            raise ImportError(
+                "Reading a YAML schema requires PyYAML. Install it with "
+                "`pip install pyyaml`, or pass the schema as a Python dict.") from e
+        with open(p, 'r') as fh:
+            cfg = yaml.safe_load(fh)
 
-    ddf_products = dd.read_csv(self.file_products, delimiter='\t', encoding='latin', dtype={
-        'department_code': 'float64',
-        'product_group_code': 'float64',
-        'size1_code_uc': 'float64'},
-                               assume_missing=True
-                               )
-
-    # Filter DataFrame based on conditions
-    if keep_groups:
-        ddf_products = ddf_products[ddf_products['product_group_code'].isin(keep_groups)]
-    if drop_groups:
-        ddf_products = ddf_products[~ddf_products['product_group_code'].isin(drop_groups)]
-    if keep_modules:
-        ddf_products = ddf_products[ddf_products['product_module_code'].isin(keep_modules)]
-    if drop_modules:
-        ddf_products = ddf_products[~ddf_products['product_module_code'].isin(drop_modules)]
-    if keep_departments:
-        ddf_products = ddf_products[ddf_products['department_code'].isin(keep_departments)]
-    if drop_departments:
-        ddf_products = ddf_products[~ddf_products['department_code'].isin(drop_departments)]
-
-    ddf_products['size1_units'] = ddf_products['size1_units'].astype('category')
-    ddf_products['product_module_descr'] = ddf_products['product_module_descr'].astype('category')
-    ddf_products['product_group_code'] = ddf_products['product_group_code'].astype('category')
-
-    # Filter by UPC list
-    if upc_list:
-        ddf_products = ddf_products[ddf_products['upc'].isin(upc_list)]
-
-    # Sort by UPC and reset index
-    ddf_products = ddf_products.sort_values('upc').reset_index(drop=True)
-
-    # Assign to class attribute
-    self.df_products = ddf_products.compute().copy()
-
-    if self.verbose:
-        print('Successfully Read in Products with Shape ', self.df_products.shape)
-
-    del (ddf_products)
-
-    return
+    missing = [k for k in _REQUIRED_KEYS if k not in (cfg or {})]
+    if missing:
+        raise ValueError(
+            f"Schema is missing required section(s): {missing}. "
+            f"See schema.example.yaml for the expected structure.")
+    return cfg
 
 
-def get_extra(self, years=None, upc_list=None):
-    if years == None:
-        years = self.all_years
-
-    files_extra_in = [f for f in self.files_extra
-                      if get_year(f) in years]
-
-    dd_extra = dd.read_csv(
-        files_extra_in,
-        delimiter='\t',
-        dtype=dict_types,
-        assume_missing=True)
-
-    if upc_list:
-        dd_extra = dd_extra[dd_extra['upc'].isin(upc_list)]
-
-    dd_extra = dd_extra.sort_values(['upc', 'panel_year']).reset_index(drop=True)
-
-    self.df_extra = dd_extra.compute().copy()
-    # not going to edit the missings or anything of the sort
-    if self.verbose == True:
-        print('Successfully Read in Extra Files with Shape', self.df_extra.shape)
-
-    del (dd_extra)
-    # sort by UPC
-    return
+def write_schema_template(dest='.'):
+    """
+    Copy the blank schema template next to this package out to `dest` as
+    `schema.yaml`, for you to fill in from your own licensed NielsenIQ docs.
+    """
+    import shutil
+    src = path.Path(__file__).with_name('schema.example.yaml')
+    out = path.Path(dest) / 'schema.yaml'
+    shutil.copyfile(src, out)
+    print(f"Wrote {out} — fill it in from your licensed NielsenIQ documentation, "
+          f"then pass schema='{out}'.")
+    return str(out)
 
 
-# Define class NielsenIQRetail will contain all methods we use to read in the Retail Scanner Data
+# ═══════════════════════════════════════════════════════════════════════════
+# Unified reader
+# ═══════════════════════════════════════════════════════════════════════════
 class NielsenIQRetail(object):
     """
-    Object class to read in NielsenIQ Retail Scanner Data
-    Files created:
-        df_extra: from annual product_extra files
-        df_products: from Master product file
-        df_rms: from Annual rms_versions files
-        df_stores: from Annual stores files
-        df_sales: from Movement files
-    Can filter based on store locations (DMAs), product groups,
-    product modules, and years
+    Unified reader for NielsenIQ Retail Scanner data (Batch 1 and/or Batch 2).
+
+    Args:
+        dir_read:    Path to Batch 1 RMS root, OR (if dir_read_v2 is None) a
+                     single root that is auto-detected as Batch 1 or Batch 2.
+        dir_read_v2: (Optional) Path to Batch 2 RMS root, when using both.
+        schema:      Path to your filled-in schema YAML, a schema dict, or None
+                     (then env NIELSEN_SCHEMA or ./schema.yaml). REQUIRED to
+                     read anything — it carries the file layout and column names
+                     from your licensed subscription.
+        verbose:     Print progress (default True).
+
+    df_sales is always a lazy Dask DataFrame — filter/aggregate before compute.
     """
 
-    def __init__(self, dir_read, verbose=True):
+    def __init__(self, dir_read=None, dir_read_v2=None, schema=None, verbose=True):
         self.verbose = verbose
-        self.dir_read = path.Path(dir_read) # convert the input string into a Path object
+        self.has_batch1 = False
+        self.has_batch2 = False
 
-        # Get all files in the relevant folder
-        self.files = get_files(self)
+        # --- schema (all proprietary names/types/layout come from here) ------
+        self.schema = load_schema(schema)
+        self.COL   = self.schema['columns']            # logical role -> real column name
+        self.FILES = self.schema['files']              # file/folder organization
+        self._dt   = self.schema['dtypes']             # raw {col: token} maps
+        self._attr = self.schema.get('attributes', {}) # B2 attribute variable names
 
-        self.files_product = [f for f in self.files if
-                              (f.name == 'products.tsv') &
-                              (f.parent.name == 'Latest') &
-                              (f.parent.parent.name == 'Master_Files')]
+        # --- locate batches --------------------------------------------------
+        b1 = self.FILES.get('batch1', {})
+        b2 = self.FILES.get('batch2', {})
 
-        self.files_annual = [f for f in self.files
-                             if 'Annual_Files' in f.parts]
+        if dir_read is not None and dir_read_v2 is not None:
+            self._init_batch1(path.Path(dir_read))
+            self._init_batch2(path.Path(dir_read_v2))
+        elif dir_read is not None:
+            d = path.Path(dir_read)
+            looks_b1 = any(d.glob(f"**/{b1.get('product_parent','')}/{b1.get('product_file','')}")) \
+                       if b1.get('product_file') else False
+            looks_b2 = any(d.glob(f"**/{b2.get('productdesc_filename','')}")) \
+                       if b2.get('productdesc_filename') else False
+            if looks_b1 and looks_b2:
+                self._init_batch1(d); self._init_batch2(d)
+            elif looks_b1:
+                self._init_batch1(d)
+            elif looks_b2:
+                self._init_batch2(d)
+            else:
+                raise Exception(
+                    f"Could not detect Batch 1 or Batch 2 data in {d} using the "
+                    f"file markers in your schema. Check the 'files' section.")
+        else:
+            raise Exception("Provide dir_read (and optionally dir_read_v2).")
 
-        self.files_sales = [f for f in self.files
-                            if 'Movement_Files' in f.parts]
-        if not self.files_sales:
-            raise Exception('Could not find Movement Files!')
+        self.all_years = set()
+        if self.has_batch1: self.all_years |= self._b1_years
+        if self.has_batch2: self.all_years |= self._b2_years
 
-        try:
-            self.all_groups = set(self.get_group(f) for f in self.files_sales)
-        except:
-            raise Exception('Could not get Group Code from Movement Files. Use original NielsenIQ naming conventions')
-
-        try:
-            self.all_modules = set(self.get_module(f) for f in self.files_sales)
-        except:
-            raise Exception('Could not get Module Code from Movement Files. Use original NielsenIQ naming conventions')
-
-        try:
-            self.all_years = set(get_year(f) for f in self.files_sales if get_year(f) is not None)
-        except:
-            raise Exception('Could not get Year from Movement Files. Use original NielsenIQ naming conventions')
-
-        self.files_stores = [f for f in self.files_annual if 'stores' in f.name]
-        self.files_rms = [f for f in self.files_annual if 'rms_versions' in f.name]
-        self.files_extra = [f for f in self.files_annual if 'products_extra' in f.name]
-
-        self.dict_stores = {get_year(f): f for f in self.files_stores if get_year(f) is not None}
-        self.dict_rms = {get_year(f): f for f in self.files_rms if get_year(f) is not None}
-        self.dict_extra = {get_year(f): f for f in self.files_extra if get_year(f) is not None}
-
-        self.dict_sales = {y: [f for f in self.files_sales if get_year(f) == y]
-                           for y in self.all_years}
-
-        self.df_products = dd.from_pandas(pd.DataFrame(), npartitions=1)
-        self.df_sales = dd.from_pandas(pd.DataFrame(), npartitions=16)
+        # outputs
+        self.df_products = pd.DataFrame()
+        self.df_products_b2 = pd.DataFrame()
+        self.df_hierarchy = pd.DataFrame()
         self.df_stores = dd.from_pandas(pd.DataFrame(), npartitions=1)
-        self.df_rms = {}
-        self.df_extra = dd.from_pandas(pd.DataFrame(), npartitions=1)
+        self.df_sales = dd.from_pandas(pd.DataFrame(), npartitions=1)
+        self.df_rms = pd.DataFrame()
+        self.df_extra = pd.DataFrame()
+        self.df_attributes = pd.DataFrame()
 
-        return
+        if self.verbose:
+            print('NielsenIQRetail initialized.')
+            parts = []
+            if self.has_batch1: parts.append(f'Batch 1 (years: {sorted(self._b1_years)})')
+            if self.has_batch2: parts.append(f'Batch 2 (years: {sorted(self._b2_years)})')
+            print('  Batches:', ', '.join(parts))
+            print('  All years:', sorted(self.all_years))
+            if self.has_batch1:
+                print(f'  B1 groups: {len(self._b1_all_groups)}, '
+                      f'modules: {len(self._b1_all_modules)}, '
+                      f'movement files: {len(self._b1_files_sales)}')
+            if self.has_batch2:
+                print(f'  B2 groupings: {len(self._b2_all_kfss)}, '
+                      f'super categories: {len(self._b2_all_sc)}, '
+                      f'movement files: {len(self._b2_files_sales)}')
 
+    # ── helpers: dtype maps resolved from the schema ────────────────────────
+    def _dtypes(self, key):
+        return _resolve_dtypes(self._dt.get(key, {}))
 
+    def _attr_dtypes(self):
+        """Build the B2 attributes dtype map from user-supplied attribute names."""
+        names  = self._attr.get('names', [])
+        suffix = self._attr.get('code_suffix', '_cd')
+        upc, yr = self.COL['upc'], self.COL.get('year_in', 'year')
+        d = {upc: 'object', yr: pd.UInt16Dtype()}
+        for n in names:
+            d[n] = 'object'
+            d[f"{n}{suffix}"] = pd.Int64Dtype()
+        return d
 
-    
-    # given the Path of a sales file, find its module code
-    def get_module(self, file_sales):
-        """
-        Given the Path of a sales file, find its module code
-        """
-        return int(file_sales.stem.split('_')[0])
+    # ── generic file discovery (folder/file names come from the schema) ─────
+    @staticmethod
+    def _get_files(dir_read):
+        files = [f for f in path.Path(dir_read).glob('**/*.*sv') if '._' not in f.stem]
+        if not files:
+            raise Exception(f'Found no files in {dir_read}!')
+        return files
 
-    # given the Path of a sales file, find its group code
-    def get_group(self, file_sales):
-        """
-        Given the Path of a sales file, find its group code
-        """
-        return int(file_sales.parent.stem.split('_')[0])
+    @staticmethod
+    def _stem_token(stem, which):
+        parts = stem.split('_')
+        return parts[0] if which == 'first' else parts[-1]
 
+    def _year_b1(self, f):
+        try:
+            return int(self._stem_token(f.stem, 'last'))
+        except ValueError:
+            return None
 
-    # Begin a Proper Cleanup: filter years, groups, modules, etc.
-    def filter_years(self, keep = None, drop = None):
-        """
-        Function: selects years of sales to include
-        Arguments: keep, drop: both take lists of years
-        Re-runs of this method are cumulative: cannot retrieve dropped years
-        without re-initializing your Retail Reader object
-        """
-        # go through each of the four file types, and keep only the keys that correspond to the years we want
+    def _module_b1(self, f):
+        return int(self._stem_token(f.stem, 'first'))
 
-        def aux_filter_years(orig_dict, keep = None, drop = None):
-            new_dict = orig_dict
-            if keep:
-                new_dict = {y: f for y, f in new_dict.items() if y in keep}
-            if drop:
-                new_dict = {y: f for y, f in new_dict.items() if y not in drop}
-            return new_dict
+    def _group_b1(self, f):
+        return int(self._stem_token(f.parent.stem, 'first'))
 
-        dict_stores_delayed = delayed(aux_filter_years)(self.dict_stores, keep = keep, drop = drop)
-        dict_rms_delayed = delayed(aux_filter_years)(self.dict_rms, keep = keep, drop = drop)
-        dict_extra_delayed = delayed(aux_filter_years)(self.dict_extra, keep = keep, drop = drop)
-        dict_sales_delayed = delayed(aux_filter_years)(self.dict_sales, keep = keep, drop = drop)
+    @staticmethod
+    def _year_b2(f):
+        for part in f.parts:
+            if len(part) == 4 and part.isdigit() and 2020 <= int(part) <= 2099:
+                return int(part)
+        return None
 
-        self.dict_stores = dict_stores_delayed.compute()
-        self.dict_rms = dict_rms_delayed.compute()
-        self.dict_extra = dict_extra_delayed.compute()
-        self.dict_sales = dict_sales_delayed.compute()
+    @staticmethod
+    def _kfss(f):
+        return f.parent.name
 
-        new_years = self.all_years
+    @staticmethod
+    def _super_category(f):
+        return f.stem
 
-        if keep:
-            new_years = {y for y in new_years if y in keep}
-        if drop:
-            new_years = {y for y in new_years if y not in drop}
+    # ══════════════════════════════════════════════════════════════════════
+    # BATCH INITIALISATION
+    # ══════════════════════════════════════════════════════════════════════
+    def _init_batch1(self, dir_read):
+        self.has_batch1 = True
+        self._b1_dir = dir_read
+        b1 = self.FILES['batch1']
+        files = self._get_files(dir_read)
 
-        self.all_years = new_years
-        if self.verbose == True:
-            print('Years Left: ', self.all_years)
-        return
+        self._b1_files_product = [
+            f for f in files
+            if f.name == b1['product_file']
+            and f.parent.name == b1['product_parent']
+            and f.parent.parent.name == b1['product_grandparent']
+        ]
+        annual = [f for f in files if b1['annual_marker'] in f.parts]
+        self._b1_files_sales = [f for f in files if b1['movement_marker'] in f.parts]
+        if not self._b1_files_sales:
+            raise Exception('Batch 1: Could not find movement files (check schema markers).')
 
+        self._b1_all_groups  = {self._group_b1(f)  for f in self._b1_files_sales}
+        self._b1_all_modules = {self._module_b1(f) for f in self._b1_files_sales}
+        self._b1_years = {self._year_b1(f) for f in self._b1_files_sales if self._year_b1(f)}
 
-    # Filter Groups & Modules structured Similarly enough to Combine
-    def filter_sales(self, keep_groups = None, drop_groups = None,
-                     keep_modules = None, drop_modules = None):
-        """
-        Function: filters sales by group or module before reading in files
-        to save space and memory
-        Arguments: keep_groups, drop_groups: take lists of product group codes
-        keep_modules_drop_modules: take lists of product module codes
+        self._b1_files_stores = [f for f in annual if b1['stores_token'] in f.name]
+        self._b1_files_rms    = [f for f in annual if b1['rms_token'] in f.name]
+        self._b1_files_extra  = [f for f in annual if b1['extra_token'] in f.name]
 
-        Filter sales: keep certain product groups and/or modules
-        Re-runs of this method are cumulative: cannot retrieve dropped categories
-        without re-initializing your Retail Reader object
-        """
+        self._b1_dict_stores = {self._year_b1(f): f for f in self._b1_files_stores if self._year_b1(f)}
+        self._b1_dict_rms    = {self._year_b1(f): f for f in self._b1_files_rms if self._year_b1(f)}
+        self._b1_dict_extra  = {self._year_b1(f): f for f in self._b1_files_extra if self._year_b1(f)}
+        self._b1_dict_sales  = {y: [f for f in self._b1_files_sales if self._year_b1(f) == y]
+                                for y in self._b1_years}
 
-        def aux_filter_sales(orig_dict, func = self.get_group,
-                             keep = None, drop = None):
-            new_dict = orig_dict
-            if keep:
-                new_dict = {y: [ f  for f in new_dict[y]
-                                if func(f) in keep]
-                            for y in new_dict.keys()
-                            }
-            if drop:
-                new_dict = {y: [ f  for f in new_dict[y]
-                                if func(f) not in drop]
-                            for y in new_dict.keys()
-                            }
-            return new_dict
+    def _init_batch2(self, dir_read):
+        self.has_batch2 = True
+        self._b2_dir = dir_read
+        b2 = self.FILES['batch2']
+        files = self._get_files(dir_read)
 
-        self.dict_sales = delayed(aux_filter_sales)(self.dict_sales,
-                                           self.get_group,
-                                           keep = keep_groups,
-                                           drop = drop_groups).compute()
+        annual = [f for f in files if b2['annual_marker'] in f.parts]
+        self._b2_files_sales = [f for f in files if b2['movement_marker'] in f.parts]
+        if not self._b2_files_sales:
+            raise Exception('Batch 2: Could not find movement files (check schema markers).')
 
-        self.dict_sales = delayed(aux_filter_sales)(self.dict_sales,
-                                           self.get_module,
-                                           keep = keep_modules,
-                                           drop = drop_modules).compute()
+        self._b2_files_stores      = [f for f in annual if f.name == b2['stores_filename']]
+        self._b2_files_productdesc = [f for f in annual if f.name == b2['productdesc_filename']]
+        self._b2_files_hierarchy   = [f for f in annual if f.name == b2['hierarchy_filename']]
+        self._b2_files_attributes  = [f for f in annual if f.name == b2['attributes_filename']]
 
-        self.all_groups = {self.get_group(f)
-                           for y in self.dict_sales.keys()
-                           for f in self.dict_sales[y]
-                           }
-        self.all_modules = {self.get_module(f)
-                           for y in self.dict_sales.keys()
-                           for f in self.dict_sales[y]
-                           }
-        if self.verbose == True:
-            print('Groups Left: ', self.all_groups)
-            print('Modules Left: ', self.all_modules)
+        self._b2_all_kfss = {self._kfss(f) for f in self._b2_files_sales}
+        self._b2_all_sc   = {self._super_category(f) for f in self._b2_files_sales}
+        self._b2_years = {self._year_b2(f) for f in self._b2_files_sales if self._year_b2(f)}
 
-        return
+        self._b2_dict_stores      = {self._year_b2(f): f for f in self._b2_files_stores if self._year_b2(f)}
+        self._b2_dict_productdesc = {self._year_b2(f): f for f in self._b2_files_productdesc if self._year_b2(f)}
+        self._b2_dict_hierarchy   = {self._year_b2(f): f for f in self._b2_files_hierarchy if self._year_b2(f)}
+        self._b2_dict_attributes  = {self._year_b2(f): f for f in self._b2_files_attributes if self._year_b2(f)}
+        self._b2_dict_sales       = {y: [f for f in self._b2_files_sales if self._year_b2(f) == y]
+                                     for y in self._b2_years}
 
+    # ══════════════════════════════════════════════════════════════════════
+    # FILTER METHODS
+    # ══════════════════════════════════════════════════════════════════════
+    def filter_years(self, keep=None, drop=None):
+        def _filt(d):
+            if keep: d = {y: f for y, f in d.items() if y in keep}
+            if drop: d = {y: f for y, f in d.items() if y not in drop}
+            return d
+        if self.has_batch1:
+            self._b1_dict_stores = _filt(self._b1_dict_stores)
+            self._b1_dict_rms    = _filt(self._b1_dict_rms)
+            self._b1_dict_extra  = _filt(self._b1_dict_extra)
+            self._b1_dict_sales  = _filt(self._b1_dict_sales)
+            self._b1_years = set(self._b1_dict_sales.keys())
+        if self.has_batch2:
+            self._b2_dict_stores      = _filt(self._b2_dict_stores)
+            self._b2_dict_productdesc = _filt(self._b2_dict_productdesc)
+            self._b2_dict_hierarchy   = _filt(self._b2_dict_hierarchy)
+            self._b2_dict_attributes  = _filt(self._b2_dict_attributes)
+            self._b2_dict_sales       = _filt(self._b2_dict_sales)
+            self._b2_years = set(self._b2_dict_sales.keys())
+        self.all_years = set()
+        if self.has_batch1: self.all_years |= self._b1_years
+        if self.has_batch2: self.all_years |= self._b2_years
+        if self.verbose: print('Years Left:', sorted(self.all_years))
 
-    # Filter years and sales before fee
-    def read_rms(self):
-        """
-        Function: populates self.df_rms
+    def filter_sales(self, keep_groups=None, drop_groups=None,
+                     keep_modules=None, drop_modules=None,
+                     keep_kfss=None, drop_kfss=None,
+                     keep_super_categories=None, drop_super_categories=None):
+        def _ff(d, func, keep, drop):
+            if keep: d = {y: [f for f in d[y] if func(f) in keep] for y in d}
+            if drop: d = {y: [f for f in d[y] if func(f) not in drop] for y in d}
+            return d
+        if self.has_batch1:
+            if keep_groups or drop_groups:
+                self._b1_dict_sales = _ff(self._b1_dict_sales, self._group_b1, keep_groups, drop_groups)
+            if keep_modules or drop_modules:
+                self._b1_dict_sales = _ff(self._b1_dict_sales, self._module_b1, keep_modules, drop_modules)
+            self._b1_all_groups  = {self._group_b1(f)  for y in self._b1_dict_sales for f in self._b1_dict_sales[y]}
+            self._b1_all_modules = {self._module_b1(f) for y in self._b1_dict_sales for f in self._b1_dict_sales[y]}
+            if self.verbose and (keep_groups or drop_groups or keep_modules or drop_modules):
+                print(f'B1 — Groups: {self._b1_all_groups}, Modules: {self._b1_all_modules}')
+        if self.has_batch2:
+            if keep_kfss or drop_kfss:
+                self._b2_dict_sales = _ff(self._b2_dict_sales, self._kfss, keep_kfss, drop_kfss)
+            if keep_super_categories or drop_super_categories:
+                self._b2_dict_sales = _ff(self._b2_dict_sales, self._super_category,
+                                          keep_super_categories, drop_super_categories)
+            self._b2_all_kfss = {self._kfss(f) for y in self._b2_dict_sales for f in self._b2_dict_sales[y]}
+            self._b2_all_sc   = {self._super_category(f) for y in self._b2_dict_sales for f in self._b2_dict_sales[y]}
+            if self.verbose and (keep_kfss or drop_kfss or keep_super_categories or drop_super_categories):
+                print(f'B2 — Groupings: {self._b2_all_kfss}, Super Categories: {self._b2_all_sc}')
 
-        Read in the RMS versions files
-        Some UPCs are reuses of UPCs from previous years
-        Nielsen notes the products may have changed sufficiently
-        And codes these as a new product "version" in the later years
-        Columns: upc, upc_ver_uc, panel_year
-        See NielsenIQ documentation for a full description of these variables.
-        """
-        
-        # Create a list of delayed reads for each CSV file
-        delayed_read_csv = [dd.read_csv(file_path, delimiter='\t', dtype=dict_types, assume_missing=True)
-                            for file_path in self.dict_rms.values()]
-    
-        # Concatenate the delayed reads into a single Dask DataFrame
-        self.df_rms = dd.concat(delayed_read_csv).compute()
+    # ══════════════════════════════════════════════════════════════════════
+    # READ METHODS
+    # ══════════════════════════════════════════════════════════════════════
+    def read_stores(self):
+        yr, py = self.COL.get('year_in', 'year'), self.COL.get('year_out', 'year_out')
+        frames = []
+        if self.has_batch1 and self._b1_dict_stores:
+            d1 = dd.concat([dd.read_csv(f, sep='\t', dtype=self._dtypes('batch1'), assume_missing=True)
+                            for f in self._b1_dict_stores.values()]).rename(columns={yr: py})
+            frames.append(d1)
+        if self.has_batch2 and self._b2_dict_stores:
+            d2 = dd.concat([dd.read_csv(f, sep='\t', dtype=self._dtypes('batch2_stores'), assume_missing=True)
+                            for f in self._b2_dict_stores.values()]).rename(columns={yr: py})
+            frames.append(d2)
+        if not frames:
+            raise Exception('No stores files found.')
+        self.df_stores = dd.concat(frames) if len(frames) > 1 else frames[0]
+        if self.verbose: print('Successfully read stores files')
 
-        if self.verbose == True:
-            print(f"Successfully Read in the RMS Files for {len(self.dict_rms.values())} years")
-        return
-
-
+    def filter_stores(self, keep_dmas=None, drop_dmas=None,
+                      keep_states=None, drop_states=None,
+                      keep_channels=None, drop_channels=None):
+        if len(self.df_stores) == 0:
+            self.read_stores()
+        df = self.df_stores
+        dma, ch, st = self.COL.get('dma'), self.COL.get('channel'), self.COL.get('state')
+        if keep_dmas:     df = df[df[dma].isin(keep_dmas)]
+        if drop_dmas:     df = df[~df[dma].isin(drop_dmas)]
+        if keep_channels: df = df[df[ch].isin(keep_channels)]
+        if drop_channels: df = df[~df[ch].isin(drop_channels)]
+        if keep_states:   df = df[df[st].isin(keep_states)]
+        if drop_states:   df = df[~df[st].isin(drop_states)]
+        self.df_stores = df.compute().copy()
+        if self.verbose: print(f'Store count after filter: {len(self.df_stores)}')
 
     def read_products(self, upc_list=None,
-                  keep_groups=None, drop_groups=None,
-                  keep_modules=None, drop_modules=None,
-                  keep_departments=None, drop_departments=None):
-        """
-        Function: populates self.df_products
-    
-        Arguments: 
-            Required: RetailReader object
-            Optional: keep_groups, drop_groups, keep_modules, drop_modules,
-            upc_list
-            Each takes a list of group codes, module codes, or upcs
-    
-        Select the Product file and read it in
-        Common to both the Retail Reader files
-        
-        Options:
-        upc_list: a list of integer UPCs to select, ignores versioning by NielsenIQ
-        keep_groups, drop_groups: selects or drops product group codes
-        keep_modules, drop_modules: selects or drops product module codes
-        
-        Columns: upc, upc_ver_uc, upc_descr, product_module_code, product_module_descr,
-        product_group_code, product_group_descr, department_code,
-        department_descr, brand_code_uc, brand_descr, multi,
-        size1_code_uc, size1_amount, size1_units, dataset_found_uc, 
-        size1_change_flag_uc
-        See NielsenIQ documentation for a full description of these variables.
-        """
-    
-        # Call get_products function
-        get_products(self, upc_list=upc_list,keep_groups=keep_groups, drop_groups=drop_groups,
-                                   keep_modules=keep_modules, drop_modules=drop_modules,
-                                   keep_departments=keep_departments, drop_departments=drop_departments)
-        
-    
-        return
+                      keep_groups=None, drop_groups=None,
+                      keep_modules=None, drop_modules=None,
+                      keep_departments=None, drop_departments=None,
+                      keep_super_categories=None, drop_super_categories=None,
+                      keep_categories=None, drop_categories=None):
+        upc = self.COL['upc']
+        # --- Batch 1 products master ---
+        if self.has_batch1 and self._b1_files_product:
+            ddf = dd.read_csv(self._b1_files_product[0], delimiter='\t', encoding='latin',
+                              dtype=self._dtypes('batch1_products'), assume_missing=True)
+            gcol, mcol, dcol = self.COL.get('group'), self.COL.get('module'), self.COL.get('department')
+            if keep_groups:      ddf = ddf[ddf[gcol].isin(keep_groups)]
+            if drop_groups:      ddf = ddf[~ddf[gcol].isin(drop_groups)]
+            if keep_modules:     ddf = ddf[ddf[mcol].isin(keep_modules)]
+            if drop_modules:     ddf = ddf[~ddf[mcol].isin(drop_modules)]
+            if keep_departments: ddf = ddf[ddf[dcol].isin(keep_departments)]
+            if drop_departments: ddf = ddf[~ddf[dcol].isin(drop_departments)]
+            if upc_list:         ddf = ddf[ddf[upc].isin(upc_list)]
+            self.df_products = ddf.compute().copy()
+            if self.verbose: print(f'B1 products shape: {self.df_products.shape}')
+        # --- Batch 2 product description ---
+        if self.has_batch2 and self._b2_dict_productdesc:
+            ddf = dd.concat([dd.read_csv(f, delimiter='\t', dtype=self._dtypes('batch2_productdesc'),
+                                         assume_missing=True) for f in self._b2_dict_productdesc.values()])
+            if upc_list: ddf = ddf[ddf[upc].isin(upc_list)]
+            if any([keep_super_categories, drop_super_categories, keep_categories, drop_categories]):
+                if len(self.df_hierarchy) == 0:
+                    raise Exception('B2 hierarchy filters require read_hierarchy() first.')
+                sc, cat = self.COL.get('super_category'), self.COL.get('category')
+                h = self.df_hierarchy
+                if keep_super_categories: h = h[h[sc].isin(keep_super_categories)]
+                if drop_super_categories: h = h[~h[sc].isin(drop_super_categories)]
+                if keep_categories:       h = h[h[cat].isin(keep_categories)]
+                if drop_categories:       h = h[~h[cat].isin(drop_categories)]
+                ddf = ddf[ddf[upc].isin(h[upc].unique())]
+            self.df_products_b2 = ddf.compute().copy()
+            if self.verbose: print(f'B2 products shape: {self.df_products_b2.shape}')
 
-    
-    
+    def read_rms(self):
+        if not self.has_batch1 or not self._b1_dict_rms:
+            print('No RMS files (Batch 1 only).'); return
+        self.df_rms = dd.concat([dd.read_csv(f, delimiter='\t', dtype=self._dtypes('batch1'),
+                                             assume_missing=True) for f in self._b1_dict_rms.values()]).compute()
+        if self.verbose: print(f'Read RMS for {len(self._b1_dict_rms)} years')
+
     def read_extra(self, years=None, upc_list=None):
-        """
-        Function: populates self.df_extra
-    
-        Select the Extra [characteristics] file and read it in
-        Common to both the Retail Reader files
-        Filter Options:
-        Sometimes UPCs have repeat entries, but these tend
-        to be due to missing data and reporting issues, not changes. NielsenIQ
-        codes product changes as different product versions.
-        
-        Module and Group selections not possible for the extra files. 
-        One option is to select modules and groups in the product data and then
-        merge. 
-    
-        Columns: upc, upc_ver_uc, panel_year, flavor_code, flavor_descr, 
-        form_code, form_descr, formula_code, formula_descr, container_code, 
-        container_descr, salt_content_code, salt_content_descr, style_code, 
-        style_descr, type_code, type_descr, product_code, product_descr, 
-        variety_code, variety_descr, organic_claim_code, organic_claim_descr, 
-        usda_organic_seal_code, usda_organic_seal_descr, 
-        common_consumer_name_code, common_consumer_name_descr, 
-        strength_code, strength_descr, scent_code, scent_descr, 
-        dosage_code, dosage_descr, gender_code, gender_descr,
-        target_skin_condition_code, target_skin_condition_descr, 
-        use_code, use_descr, size2_code, size2_amount, size2_units
-    
-        See Nielsen documentation for a full description of these variables.
-        """
+        if not self.has_batch1:
+            print('read_extra is Batch 1 only; use read_attributes for Batch 2.'); return
+        if years is None: years = self._b1_years
+        files_in = [f for f in self._b1_files_extra if self._year_b1(f) in years]
+        ddf = dd.concat([dd.read_csv(f, delimiter='\t', dtype=self._dtypes('batch1'),
+                                     assume_missing=True) for f in files_in])
+        if upc_list: ddf = ddf[ddf[self.COL['upc']].isin(upc_list)]
+        self.df_extra = ddf.compute().copy()
+        if self.verbose: print(f'B1 extra shape: {self.df_extra.shape}')
 
-
-        get_extra(self, years=years, upc_list=upc_list)
-    
- 
-
-        return
-
-
-    # Read in the Stores File again, common to all groups and modules, so if you are filtering products keep in mind the stores files will be common
-
-    def read_stores(self):
-        """
-        Function: populates self.df_stores
-        Output: self.df_stores will be populated
-        Read in stores files, which are common to all groups and modules
-        If you are filtering products, note that stores will be common
-    
-        Columns: store_code_uc, year, parent_code, retailer_code,
-        channel_code, store_zip3, fips_state_code, fips_state_descr,
-        fips_county_code, fips_county_descr
-    
-        See NielsenIQ documentation for a full description of these variables.
-        """
-        ddf_stores = dd.concat([dd.read_csv(f,  sep='\t', dtype=dict_types) 
-                                for f in self.dict_stores.values()])
-        
-        # dd.read_csv(list(self.dict_stores.values()), sep='\t', dtype=dict_types)
-    
-        # harmonize the column name for years
-        ddf_stores = ddf_stores.rename(columns={'year': 'panel_year'})
-
-    
-        # fill blanks with zeroes
-        # df_stores = df_stores.fillna(0)
-        self.df_stores = ddf_stores
-
-    
+    def read_hierarchy(self, years=None, upc_list=None,
+                       keep_departments=None, drop_departments=None,
+                       keep_super_categories=None, drop_super_categories=None,
+                       keep_categories=None, drop_categories=None,
+                       keep_segments=None, drop_segments=None,
+                       keep_sub_categories=None, drop_sub_categories=None):
+        if not self.has_batch2:
+            print('Product hierarchy is Batch 2 only (2021+).'); return
+        if years is None: years = self._b2_years
+        files_in = [f for f in self._b2_files_hierarchy if self._year_b2(f) in years]
+        if not files_in:
+            raise Exception('No hierarchy files found (check schema).')
+        ddf = dd.concat([dd.read_csv(f, delimiter='\t', dtype=self._dtypes('batch2_hierarchy'),
+                                     assume_missing=False) for f in files_in])
+        c = self.COL
+        dep, sc, cat = c.get('h_department'), c.get('super_category'), c.get('category')
+        seg, sub, upc = c.get('segment'), c.get('sub_category'), c['upc']
+        if keep_departments:      ddf = ddf[ddf[dep].isin(keep_departments)]
+        if drop_departments:      ddf = ddf[~ddf[dep].isin(drop_departments)]
+        if keep_super_categories: ddf = ddf[ddf[sc].isin(keep_super_categories)]
+        if drop_super_categories: ddf = ddf[~ddf[sc].isin(drop_super_categories)]
+        if keep_categories:       ddf = ddf[ddf[cat].isin(keep_categories)]
+        if drop_categories:       ddf = ddf[~ddf[cat].isin(drop_categories)]
+        if keep_segments:         ddf = ddf[ddf[seg].isin(keep_segments)]
+        if drop_segments:         ddf = ddf[~ddf[seg].isin(drop_segments)]
+        if keep_sub_categories:   ddf = ddf[ddf[sub].isin(keep_sub_categories)]
+        if drop_sub_categories:   ddf = ddf[~ddf[sub].isin(drop_sub_categories)]
+        if upc_list:              ddf = ddf[ddf[upc].isin(upc_list)]
+        self.df_hierarchy = ddf.compute()
         if self.verbose:
-            print('Successfully Read in Stores Files')
+            print(f'Hierarchy shape: {self.df_hierarchy.shape}')
 
-        return
+    def read_attributes(self, years=None, upc_list=None):
+        if not self.has_batch2:
+            print('read_attributes is Batch 2 only; use read_extra for Batch 1.'); return
+        if years is None: years = self._b2_years
+        files_in = [f for f in self._b2_files_attributes if self._year_b2(f) in years]
+        if not files_in:
+            raise Exception('No attributes files found (check schema).')
+        ddf = dd.concat([dd.read_csv(f, delimiter='\t', dtype=self._attr_dtypes(),
+                                     assume_missing=True) for f in files_in])
+        if upc_list: ddf = ddf[ddf[self.COL['upc']].isin(upc_list)]
+        self.df_attributes = ddf.compute().copy()
+        if self.verbose: print(f'Attributes shape: {self.df_attributes.shape}')
 
-
-    # Filter Stores by DMA, States, and Channel
-    def filter_stores(self, keep_dmas = None, drop_dmas = None,
-                  keep_states = None, drop_states = None,
-                  keep_channels = None, drop_channels = None):
-        """
-        Function: filters self.df_stores based on DMA, state, or channel
-        Must have read in df_stores first (cannot be empty)
-        Filters stores based on DMA, State, and Channel
-        
-        See NielsenIQ documentation for a full description of these variables.
-        
-        """
-    
-        # make sure you have read in the stores files first
-        if len(self.df_stores) == 0:
-            self.read_stores()
-        
-        if self.verbose == True:
-            print('Initial Store Count: ', len(self.df_stores))
-        
-        df_stores = self.df_stores
-        
-        
-        if keep_dmas:
-            df_stores = df_stores[df_stores['dma_code'].isin(keep_dmas)]
-        
-        if drop_dmas:
-            df_stores = df_stores[~df_stores['dma_code'].isin(drop_dmas)]
-        
-        if keep_channels:
-            df_stores = df_stores[df_stores['channel_code'].isin(keep_channels)]
-            
-        if drop_channels:
-            df_stores = df_stores[~df_stores['channel_code'].isin(drop_channels)]
-
-        if keep_states:
-            df_stores = df_stores[df_stores['fips_state_descr'].isin(keep_states)]
-
-        if drop_states:
-            df_stores = df_stores[~df_stores['fips_state_descr'].isin(drop_states)]
-
-        
-        self.df_stores = df_stores.compute().copy()
-        
-        if self.verbose == True:
-            print('Final Store Count: ', len(self.df_stores))
-        
-        del(df_stores)    
-        
-        return
-
-
-
-    def read_sales(self, incl_promo = True, add_dates=False, agg_function=None, **kwargs):
-        """
-        Function: populates self.df_sales
-        Note the method takes very long!
-
-        Reads in the sales data, post filter if you have applied any
-        Uses pyarrow methods to filter and read the data without
-        taking up huge amounts of memory. But it still requires a large amount
-        of memory and CPU 
-        depending on the selected stores, years, groups, and modules
-        Columns: store_code_uc, upc, week_end, units, prmult, price, feature,
-        display
-
-        See NielsenIQ documentation for a full description of these variables.        
-        """
-
-        # Get the relevant stores
-        if len(self.df_stores) == 0:
-            self.read_stores()
-
-        if len(self.df_rms) ==0:
-            self.read_rms()
-
-        # select columns
-        my_cols = ['store_code_uc', 'upc', 'week_end', 'units', 'prmult', 'price']
-
-        if incl_promo == True:
-            my_cols = my_cols + ['feature', 'display']
-
-        # for each module-year, clean up the data frame
-        # optional: add_dates: calculate the month and quarter        
-        def aux_clean(df_tab, add_dates=False):
-            """
-            Cleans up the data frame for each module-year.
-            Optionally adds date-related calculations (month and quarter).
-            """
-            # Convert 'week_end' to datetime
-            df_tab['week_end'] = dd.to_datetime(df_tab['week_end'], format='%Y%m%d')
-    
-            # Fill null values for 'feature' and 'display'
-            if 'feature' in df_tab.columns:
-                df_tab['feature'] = df_tab['feature'].fillna(-1).astype('int8')
-                df_tab['display'] = df_tab['display'].fillna(-1).astype('int8')
-
-            # Compute unit price, panel year, and revenue
-            df_tab['unit_price'] = df_tab['price'] / df_tab['prmult']
-            df_tab['panel_year'] = df_tab['week_end'].dt.year.astype('uint16')
-            df_tab['revenue'] = df_tab['units'] * df_tab['unit_price']
-            
-
-            
-            if add_dates:
-                unique_week_ends = df_tab['week_end'].drop_duplicates().compute()
-                my_dates = pd.DataFrame({'week_end': unique_week_ends})
-                my_dates['quarter'] = my_dates['week_end'] + pd.offsets.QuarterEnd(0)
-                my_dates['month'] = my_dates['week_end'].astype('datetime64[M]')
-                df_tab = dd.merge(df_tab, dd.from_pandas(my_dates, npartitions=df_tab.npartitions), on="week_end", how='left')
-    
-            return df_tab
-    
-            # Read one module-year at a time as a pandas table, which will be later concatenated
-    
-        def aux_read_mod_year(filename, list_stores_df=None, add_dates=False, agg_function=None, **kwargs):
-
-            # Read CSV file into Dask DataFrame
-            ddf = dd.read_csv(filename, delimiter='\t', dtype=dict_types, blocksize = '64MB').repartition(npartitions=256)[my_cols]
-
-            # Filter Dask DataFrame if list_stores is provided
-            if len(list_stores_df):
-            #if list_stores.any() is not None:
-                print(type(ddf))
-                print(type(list_stores_df))
-                ddf = ddf.merge(list_stores_df, on='store_code_uc', how='inner')
-                #ddf = ddf[ddf['store_code_uc'].isin(list_stores)]
-
-
-
-            # Apply cleaning function and add dates if required
-            ddf_cleaned = aux_clean(ddf, add_dates)
-        
-            # If an aggregation function is provided, apply it
-            if agg_function:
-                # Convert Dask DataFrame to Dask Array for aggregation
-                dask_array = da.from_array(ddf_cleaned.to_dask_array(lengths=True))
-                # Apply aggregation function
-                result = dask.compute(agg_function(dask_array, **kwargs))[0]
-            else:
-                result = ddf_cleaned
-        
-            return result
-    
-            
-        # read all the modules (and groups) for one year
-        def aux_read_year(year, add_dates, agg_function=None, **kwargs):
-
-            # get the list of stores that were present in the year of choice
-            list_stores = self.df_stores[self.df_stores['panel_year'] == year][['store_code_uc']]
-            list_stores_df = list_stores.drop_duplicates()
-
-        
-            dask_frames = []
-            for f in self.dict_sales[year]:
-
-                ddf = aux_read_mod_year(f, list_stores_df, add_dates, agg_function, **kwargs)
-
-                dask_frames.append(ddf)
-            ddf_y = dd.concat(dask_frames)
-
-            return ddf_y
-        
-        if self.verbose:
-            print('Reading Sales')
-            tick()
-
-
-        # This does the work -- keep as Dask DataFrame
-        dask_frames = []
-        for year in self.dict_sales.keys():
-            ddf_year = aux_read_year(year, add_dates, agg_function, **kwargs)
-
-            dask_frames.append(ddf_year)
-
-        self.df_sales = dd.concat(dask_frames)
+    # ══════════════════════════════════════════════════════════════════════
+    # READ SALES — unified, lazy
+    # ══════════════════════════════════════════════════════════════════════
+    def read_sales(self, incl_promo=True):
+        c = self.COL
+        my_cols = [c['store_id'], c['upc'], c['week'], c['units'], c['price_multiplier'], c['price']]
+        if incl_promo:
+            my_cols += [c['feature'], c['display']]
+        upc, wk = c['upc'], c['week']
 
         if self.verbose:
-            print('Finished Sales')
-            tock()
+            print('Building unified sales graph...'); tick()
+        frames = []
+        if self.has_batch1:
+            b1_files = [str(f) for y in sorted(self._b1_dict_sales) for f in self._b1_dict_sales[y]]
+            if b1_files:
+                d1 = dd.read_csv(b1_files, delimiter='\t', dtype=self._dtypes('batch1'),
+                                 blocksize='128MB', assume_missing=True)[my_cols]
+                d1[upc] = d1[upc].astype(str)
+                d1[wk]  = d1[wk].astype(str)
+                d1['batch'] = 1
+                frames.append(d1)
+                if self.verbose: print(f'  B1: {len(b1_files)} files, {d1.npartitions} partitions')
+        if self.has_batch2:
+            b2_files = [str(f) for y in sorted(self._b2_dict_sales) for f in self._b2_dict_sales[y]]
+            if b2_files:
+                d2 = dd.read_csv(b2_files, delimiter='\t', dtype=self._dtypes('batch2_movement'),
+                                 blocksize='128MB', assume_missing=True)[my_cols]
+                d2['batch'] = 2
+                frames.append(d2)
+                if self.verbose: print(f'  B2: {len(b2_files)} files, {d2.npartitions} partitions')
+        if not frames:
+            raise Exception('No movement files found after filtering.')
+        self.df_sales = dd.concat(frames)
+        if self.verbose:
+            print(f'  Total partitions: {self.df_sales.npartitions}'); tock()
+            print('df_sales is a lazy Dask DataFrame — filter/aggregate before .compute().')
 
+    # ══════════════════════════════════════════════════════════════════════
+    # CONVENIENCE
+    # ══════════════════════════════════════════════════════════════════════
+    def compute_revenue(self):
+        """New Dask frame with unit_price, year, revenue added (derived columns)."""
+        c = self.COL
+        ddf = self.df_sales.copy()
+        ddf['week_end_dt'] = dd.to_datetime(ddf[c['week']], format='%Y%m%d', errors='coerce')
+        ddf['unit_price']  = ddf[c['price']] / ddf[c['price_multiplier']]
+        ddf['year']        = ddf['week_end_dt'].dt.year.astype('uint16')
+        ddf['revenue']     = ddf[c['units']] * ddf['unit_price']
+        return ddf
 
-        return
-
-
-############################ Completed #############################################################
+    def info(self):
+        print('All years:', sorted(self.all_years))
+        if self.has_batch1:
+            print('\nBatch 1:', self._b1_dir)
+            print(f'  Years: {sorted(self._b1_years)} | groups: {len(self._b1_all_groups)} | '
+                  f'modules: {len(self._b1_all_modules)} | '
+                  f'movement files: {sum(len(v) for v in self._b1_dict_sales.values())}')
+        if self.has_batch2:
+            print('\nBatch 2:', self._b2_dir)
+            print(f'  Years: {sorted(self._b2_years)} | groupings: {len(self._b2_all_kfss)} | '
+                  f'super categories: {len(self._b2_all_sc)} | '
+                  f'movement files: {sum(len(v) for v in self._b2_dict_sales.values())}')
